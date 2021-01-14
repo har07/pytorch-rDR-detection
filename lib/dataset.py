@@ -12,15 +12,22 @@ CONTRAST_LOWER = 0.5
 CONTRAST_UPPER = 1.5
 
 def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2):
-    train_transforms = transforms.RandomOrder([transforms.RandomHorizontalFlip(),
-                                     transforms.ColorJitter(
-                                         brightness=BRIGHTNESS_MAX_DELTA,
-                                         contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
-                                         saturation=(SATURATION_LOWER,SATURATION_UPPER),
-                                         hue=HUE_MAX_DELTA),
-                                     transforms.ToTensor()])
-    test_transforms = transforms.ToTensor()
-
+    # ToTensor() already prodcue tensor with channel first: C x H x W
+    # https://pytorch.org/docs/stable/torchvision/transforms.html#torchvision.transforms.ToTensor
+    train_transforms = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.ColorJitter(
+                brightness=BRIGHTNESS_MAX_DELTA,
+                contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
+                saturation=(SATURATION_LOWER,SATURATION_UPPER),
+                hue=HUE_MAX_DELTA),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5)) # normalize to range [-1,1]
+        ])  
+    test_transforms = transforms.Compose([
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
     train_data = datasets.ImageFolder(datadir, transform=train_transforms)
     test_data = datasets.ImageFolder(datadir, transform=test_transforms)
 
