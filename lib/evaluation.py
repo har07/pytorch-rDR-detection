@@ -1,6 +1,7 @@
 import torch
 import numpy as np
-from pytorch_lightning.metrics.functional import confusion_matrix
+from torch.autograd import Variable
+# from pytorch_lightning.metrics.functional import confusion_matrix
 
 def _get_operations_by_names(graph, names):
     return [graph.get_operation_by_name(name) for name in names]
@@ -8,6 +9,24 @@ def _get_operations_by_names(graph, names):
 
 def _get_tensors_by_names(graph, names):
     return [graph.get_tensor_by_name(name) for name in names]
+
+def evaluate(model, test_loader):
+    model.eval()
+    outputs = []
+    accuracies = []
+    
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = Variable(data), Variable(target)
+            data = data.cuda()
+            target = target.cuda()
+            output = model(data)
+            prediction = output.data.max(1)[1]   # first column has actual prob.
+            val_accuracy = np.mean(prediction.eq(target.data).cpu().numpy())*100
+            outputs.append(output)
+            accuracies.append(val_accuracy)
+        
+    return np.mean(accuracies)
 
 # TODO: return auc and write/store/plot other metrix (confusion,sensitivity,specificity,accuracy)
 # def perform_test(predictions, labels, threshold):

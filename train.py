@@ -25,7 +25,6 @@ random.seed(432)
 
 # Various loading and saving constants.
 default_train_dir = "./data/eyepacs/bin2/train"
-default_val_dir = "./data/eyepacs/bin2/validation"
 default_save_model_path = "./tmp/model"
 default_save_summaries_dir = "./tmp/logs"
 default_save_operating_thresholds_path = "./tmp/op_pts.csv"
@@ -36,9 +35,6 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-t", "--train_dir",
                     help="path to folder that contains training tfrecords",
                     default=default_train_dir)
-parser.add_argument("-v", "--val_dir",
-                    help="path to folder that contains validation tfrecords",
-                    default=default_val_dir)
 parser.add_argument("-sm", "--save_model_path",
                     help="path to where graph model should be saved",
                     default=default_save_model_path)
@@ -51,18 +47,16 @@ parser.add_argument("-so", "--save_operating_thresholds_path",
 
 args = parser.parse_args()
 train_dir = str(args.train_dir)
-val_dir = str(args.val_dir)
 save_model_path = str(args.save_model_path)
 save_summaries_dir = str(args.save_summaries_dir)
 save_operating_thresholds_path = str(args.save_operating_thresholds_path)
 
 print("""
 Training images folder: {},
-Validation images folder: {},
 Saving model and graph checkpoints at: {},
 Saving summaries at: {},
 Saving operating points at: {},
-""".format(train_dir, val_dir, save_model_path, save_summaries_dir,
+""".format(train_dir, save_model_path, save_summaries_dir,
            save_operating_thresholds_path))
 
 # Various constants.
@@ -89,7 +83,7 @@ thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 train_dataset, val_dataset = load_split_train_test(train_dir)
 
 # Base model InceptionV3 with global average pooling.
-model = torchvision.models.inception_v3(pretrained=True, progress=True)
+model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
 
 # Reset the layer with the same amount of neurons as labels.
 num_ftrs = model.fc.in_features
@@ -97,7 +91,7 @@ model.fc = nn.Linear(num_ftrs, 1)
 model = model.cuda()
 
 # Define optimizer.
-optimizer = RMSprop(model.parameters(), learning_rate=learning_rate, weight_decay=decay)
+optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
 
 def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
     def length(x): return len(str(x))
@@ -106,15 +100,17 @@ def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
     m.append(
         f"Epoch: {{0:>{length(num_epochs)}}}/{{1:>{length(num_epochs)}}}"
         .format(epoch, num_epochs))
-    m.append(f"Batch: {batch_num:>4}, Xent: {xent:6.4}")
+    m.append(f"Batch: {batch_num:>4}, Loss: {xent:6.4}")
 
     if i_step is not None:
         m.append(f"Step: {i_step:>10}")
 
-    print(", ".join(m), end="\r")
+    print(", ".join(m))
 
 for epoch in range(num_epochs):
     model.train()
+    epoch_loss = 0.0
+    epoch_acc = 0.0
     batch_num = 0
     for data, target in train_dataset:
         data, target = Variable(data), Variable(target)
@@ -127,8 +123,17 @@ for epoch in range(num_epochs):
         # sigmoid activation function
         # https://discuss.pytorch.org/t/equivalent-of-tensorflows-sigmoid-cross-entropy-with-logits-in-pytorch/1985/10
         # concluded that this is equivalent to tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits())
+        target = target.unsqueeze(1)
+        target = target.float()
         loss = F.binary_cross_entropy(output, target)
         loss.backward()    # calc gradients
+        optimizer.step()
+
+        epoch_loss += output.shape[0] * loss.item()
+
+        prediction = output.data.max(1)[1]   # first column has actual prob.
+        accuracy = np.mean(prediction.eq(target.data).cpu().numpy())*100
+        epoch_acc += output.shape[0] *accuracy
 
         # Print a nice training status. 
         # NOTE: not sure what is equivalent to global_step in pytorch, so we just removed global_step
@@ -139,6 +144,15 @@ for epoch in range(num_epochs):
     # TODO: # Retrieve training brier score.
     # train_brier = sess.run(brier)
     # print("\nEnd of epoch {0}! (Brier: {1:8.6})".format(epoch, train_brier))
+    # print("\nEnd of epoch {0}! (Loss: {1:8.6})".format(epoch, epoch_loss / len(train_dataset.dataset)))
+
+    # validate
+    val_accuracy = lib.evaluation.evaluate(model, train_dataset)
+
+    print('Epoch: {}\tLoss: {:.3f}\tAcc: {:.3f}\tVal Acc: {:.3f}'.format(epoch,
+                                                                epoch_loss / len(train_dataset.dataset),
+                                                                epoch_acc/ len(train_dataset.dataset),
+                                                                val_accuracy))
 
     # TODO: # Perform validation.
     # val_auc = lib.evaluation.perform_test(
