@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from pytorch_lightning.metrics.functional import confusion_matrix
 
 def _get_operations_by_names(graph, names):
     return [graph.get_operation_by_name(name) for name in names]
@@ -7,6 +8,12 @@ def _get_operations_by_names(graph, names):
 
 def _get_tensors_by_names(graph, names):
     return [graph.get_tensor_by_name(name) for name in names]
+
+# TODO: return auc and write/store/plot other metrix (confusion,sensitivity,specificity,accuracy)
+# def perform_test(predictions, labels, threshold):
+#     confusion_matrix(preds, target, num_classes=2, threshold=threshold)
+
+#     return conf_matrix, auc, brier
 
 
 # TODO: convert to pytorch

@@ -93,23 +93,76 @@ model = torchvision.models.inception_v3(pretrained=True, progress=True)
 
 # Reset the layer with the same amount of neurons as labels.
 num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 2)
+model.fc = nn.Linear(num_ftrs, 1)
 model = model.cuda()
 
 # Define optimizer.
 optimizer = RMSprop(model.parameters(), learning_rate=learning_rate, weight_decay=decay)
 
+def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
+    def length(x): return len(str(x))
+
+    m = []
+    m.append(
+        f"Epoch: {{0:>{length(num_epochs)}}}/{{1:>{length(num_epochs)}}}"
+        .format(epoch, num_epochs))
+    m.append(f"Batch: {batch_num:>4}, Xent: {xent:6.4}")
+
+    if i_step is not None:
+        m.append(f"Step: {i_step:>10}")
+
+    print(", ".join(m), end="\r")
+
 for epoch in range(num_epochs):
     model.train()
+    batch_num = 0
     for data, target in train_dataset:
         data, target = Variable(data), Variable(target)
         data = data.cuda()
         target = target.cuda()
 
         output = model(data)
-        # TODO: how to implement the equivalent of tf.nn.sigmoid_cross_entropy_with_logits ?
+        # NOTES: how to implement the equivalent of tf.nn.sigmoid_cross_entropy_with_logits ?
         # someone said we can use binary_crossentropy, but we need make the NN to return
         # sigmoid activation function
         # https://discuss.pytorch.org/t/equivalent-of-tensorflows-sigmoid-cross-entropy-with-logits-in-pytorch/1985/10
-        # loss = F.binary_cross_entropy(output, target)
+        # concluded that this is equivalent to tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits())
+        loss = F.binary_cross_entropy(output, target)
         loss.backward()    # calc gradients
+
+        # Print a nice training status. 
+        # NOTE: not sure what is equivalent to global_step in pytorch, so we just removed global_step
+        print_training_status(
+            epoch, num_epochs, batch_num, loss)
+        batch_num += 1
+
+    # TODO: # Retrieve training brier score.
+    # train_brier = sess.run(brier)
+    # print("\nEnd of epoch {0}! (Brier: {1:8.6})".format(epoch, train_brier))
+
+    # TODO: # Perform validation.
+    # val_auc = lib.evaluation.perform_test(
+    #     sess=sess, init_op=val_init_op,
+    #     summary_writer=train_writer, epoch=epoch)
+
+    # val_auc = 0
+    # if val_auc < latest_peak_auc + min_delta_auc:
+    #     # Stop early if peak of val auc has been reached.
+    #     # If it is lower than the previous auc value, wait up to `wait_epochs`
+    #     #  to see if it does not increase again.
+
+    #     if wait_epochs == waited_epochs:
+    #         print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
+    #             .format(epoch+1, latest_peak_auc))
+    #         break
+
+    #     waited_epochs += 1
+    # else:
+    #     latest_peak_auc = val_auc
+    #     print(f"New peak auc reached: {val_auc:10.8}")
+
+    #     # Save the model weights.
+    #     torch.save(model.state_dict(), save_model_path)
+
+    #     # Reset waited epochs.
+    #     waited_epochs = 0
