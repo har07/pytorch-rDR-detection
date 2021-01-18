@@ -131,7 +131,7 @@ for epoch in range(num_epochs):
 
         epoch_loss += output.shape[0] * loss.item()
 
-        prediction = output.data.max(1)[1]   # first column has actual prob.
+        prediction = torch.round(torch.sigmoid(output))
         accuracy = np.mean(prediction.eq(target.data).cpu().numpy())*100
         epoch_acc += output.shape[0] *accuracy
 
@@ -147,12 +147,21 @@ for epoch in range(num_epochs):
     # print("\nEnd of epoch {0}! (Loss: {1:8.6})".format(epoch, epoch_loss / len(train_dataset.dataset)))
 
     # validate
-    val_accuracy = lib.evaluation.evaluate(model, train_dataset)
+    cf, auc = lib.evaluation.evaluate(model, train_dataset)
+    tn, fp, fn, tp = cf.ravel()
+    val_itmes = tn+fp+fn+tp
+    val_accuracy = (tn + tp)/val_itmes
+    val_sensitivity = tp/(tp + fn)
+    val_specificity = tn/(tn + fp)
+    val_auc = auc
 
-    print('Epoch: {}\tLoss: {:.3f}\tAcc: {:.3f}\tVal Acc: {:.3f}'.format(epoch,
-                                                                epoch_loss / len(train_dataset.dataset),
-                                                                epoch_acc/ len(train_dataset.dataset),
-                                                                val_accuracy))
+    print('Items: {}\tTN: {}\tFP: {}\tFN: {}\tTP:{}'.format(val_itmes, tn, fp, fn, tp))
+    print('Epoch: {}\tLoss: {:.3f}\tAcc: {:.3f}\tVal Acc: {:.3f}\tSn: {:.3f}\tSp: {:.3f}\tAUC: {:.3f}'
+            .format(epoch,
+                      epoch_loss / len(train_dataset.dataset),
+                      epoch_acc/ len(train_dataset.dataset),
+                      val_accuracy, val_sensitivity,
+                      val_specificity, val_auc))
 
     # TODO: # Perform validation.
     # val_auc = lib.evaluation.perform_test(

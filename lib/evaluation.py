@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from torch.autograd import Variable
+from sklearn.metrics import confusion_matrix, roc_auc_score
 # from pytorch_lightning.metrics.functional import confusion_matrix
 
 def _get_operations_by_names(graph, names):
@@ -12,8 +13,11 @@ def _get_tensors_by_names(graph, names):
 
 def evaluate(model, test_loader):
     model.eval()
-    outputs = []
-    accuracies = []
+    accum_target = []
+    accum_pred = []
+    # confusion matrix:
+    # [[tn, fp]
+    #  [fn, tp]]
     
     with torch.no_grad():
         for data, target in test_loader:
@@ -21,12 +25,16 @@ def evaluate(model, test_loader):
             data = data.cuda()
             target = target.cuda()
             output = model(data)
-            prediction = output.data.max(1)[1]   # first column has actual prob.
-            val_accuracy = np.mean(prediction.eq(target.data).cpu().numpy())*100
-            outputs.append(output)
-            accuracies.append(val_accuracy)
+            output = output.reshape(-1)
+            prediction = torch.round(torch.sigmoid(output))
+            accum_pred.extend(prediction.cpu().numpy())
+            accum_target.extend(target.cpu().numpy())
         
-    return np.mean(accuracies)
+    # print('accum_pred: ', accum_pred)
+    # print('accum_target: ', accum_target)    
+    cf = confusion_matrix(accum_target, accum_pred)
+    auc = roc_auc_score(accum_target, accum_pred)
+    return cf, auc
 
 # TODO: return auc and write/store/plot other metrix (confusion,sensitivity,specificity,accuracy)
 # def perform_test(predictions, labels, threshold):
