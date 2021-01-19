@@ -164,7 +164,7 @@ def _resize_and_center_fundus_all(image_paths, save_path, diameter, verbosity):
             processed = _resize_and_center_fundus(image, diameter=diameter)
 
             if processed is None:
-                print("Could not preprocess {}...".format(image_path))
+                print("\nCould not preprocess {}...".format(image_path))
             else:
                 # Get the save path for the processed image.
                 image_filename = _get_filename(image_path)

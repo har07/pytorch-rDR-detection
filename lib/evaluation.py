@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch.autograd import Variable
-from sklearn.metrics import confusion_matrix, roc_auc_score
+from sklearn.metrics import confusion_matrix, roc_auc_score, brier_score_loss
 # from pytorch_lightning.metrics.functional import confusion_matrix
 
 def _get_operations_by_names(graph, names):
@@ -34,7 +34,8 @@ def evaluate(model, test_loader):
     # print('accum_target: ', accum_target)    
     cf = confusion_matrix(accum_target, accum_pred)
     auc = roc_auc_score(accum_target, accum_pred)
-    return cf, auc
+    brier = brier_score_loss(accum_target, accum_pred)
+    return cf, auc, brier
 
 # TODO: return auc and write/store/plot other metrix (confusion,sensitivity,specificity,accuracy)
 # def perform_test(predictions, labels, threshold):
