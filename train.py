@@ -24,7 +24,7 @@ print(f"PyTorch version: {torch.__version__}")
 random.seed(432)
 
 # Various loading and saving constants.
-default_train_dir = "./data/eyepacs/bin2/train"
+default_dataset_dir = "./data/fgadr/Seg-set-prep"
 default_save_model_path = "./tmp/model"
 default_save_summaries_dir = "./tmp/logs"
 default_save_operating_thresholds_path = "./tmp/op_pts.csv"
@@ -32,9 +32,9 @@ default_save_operating_thresholds_path = "./tmp/op_pts.csv"
 parser = argparse.ArgumentParser(
                     description="Trains and saves neural network for "
                                 "detection of diabetic retinopathy.")
-parser.add_argument("-t", "--train_dir",
-                    help="path to folder that contains training tfrecords",
-                    default=default_train_dir)
+parser.add_argument("-d", "--dataset_dir",
+                    help="path to folder that contains the dataset",
+                    default=default_dataset_dir)
 parser.add_argument("-sm", "--save_model_path",
                     help="path to where graph model should be saved",
                     default=default_save_model_path)
@@ -44,15 +44,19 @@ parser.add_argument("-ss", "--save_summaries_dir",
 parser.add_argument("-so", "--save_operating_thresholds_path",
                     help="path to where operating points should be saved",
                     default=default_save_operating_thresholds_path)
+parser.add_argument("-v", "--verbose",
+                    help="print log per batch instead of per epoch",
+                    default=False)
 
 args = parser.parse_args()
 train_dir = str(args.train_dir)
 save_model_path = str(args.save_model_path)
 save_summaries_dir = str(args.save_summaries_dir)
 save_operating_thresholds_path = str(args.save_operating_thresholds_path)
+is_verbose = bool(args.verbose)
 
 print("""
-Training images folder: {},
+Dataset images folder: {},
 Saving model and graph checkpoints at: {},
 Saving summaries at: {},
 Saving operating points at: {},
@@ -118,11 +122,6 @@ for epoch in range(num_epochs):
         target = target.cuda()
 
         output = model(data)
-        # NOTES: how to implement the equivalent of tf.nn.sigmoid_cross_entropy_with_logits ?
-        # someone said we can use binary_crossentropy, but we need make the NN to return
-        # sigmoid activation function
-        # https://discuss.pytorch.org/t/equivalent-of-tensorflows-sigmoid-cross-entropy-with-logits-in-pytorch/1985/10
-        # concluded that this is equivalent to tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits())
         target = target.unsqueeze(1)
         target = target.float()
         loss = F.binary_cross_entropy(output, target)
@@ -136,17 +135,12 @@ for epoch in range(num_epochs):
         epoch_acc += output.shape[0] *accuracy
 
         # Print a nice training status. 
-        # NOTE: not sure what is equivalent to global_step in pytorch, so we just removed global_step
-        print_training_status(
-            epoch, num_epochs, batch_num, loss)
+        if is_verbose:
+            print_training_status(
+                epoch, num_epochs, batch_num, loss)
         batch_num += 1
 
-    # TODO: # Retrieve training brier score.
-    # train_brier = sess.run(brier)
-    # print("\nEnd of epoch {0}! (Brier: {1:8.6})".format(epoch, train_brier))
-    # print("\nEnd of epoch {0}! (Loss: {1:8.6})".format(epoch, epoch_loss / len(train_dataset.dataset)))
-
-    # validate
+    # Perform validation.
     cf, auc = lib.evaluation.evaluate(model, train_dataset)
     tn, fp, fn, tp = cf.ravel()
     val_itmes = tn+fp+fn+tp
@@ -163,29 +157,24 @@ for epoch in range(num_epochs):
                       val_accuracy, val_sensitivity,
                       val_specificity, val_auc))
 
-    # TODO: # Perform validation.
-    # val_auc = lib.evaluation.perform_test(
-    #     sess=sess, init_op=val_init_op,
-    #     summary_writer=train_writer, epoch=epoch)
+    val_auc = 0
+    if val_auc < latest_peak_auc + min_delta_auc:
+        # Stop early if peak of val auc has been reached.
+        # If it is lower than the previous auc value, wait up to `wait_epochs`
+        #  to see if it does not increase again.
 
-    # val_auc = 0
-    # if val_auc < latest_peak_auc + min_delta_auc:
-    #     # Stop early if peak of val auc has been reached.
-    #     # If it is lower than the previous auc value, wait up to `wait_epochs`
-    #     #  to see if it does not increase again.
+        if wait_epochs == waited_epochs:
+            print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
+                .format(epoch+1, latest_peak_auc))
+            break
 
-    #     if wait_epochs == waited_epochs:
-    #         print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
-    #             .format(epoch+1, latest_peak_auc))
-    #         break
+        waited_epochs += 1
+    else:
+        latest_peak_auc = val_auc
+        print(f"New peak auc reached: {val_auc:10.8}")
 
-    #     waited_epochs += 1
-    # else:
-    #     latest_peak_auc = val_auc
-    #     print(f"New peak auc reached: {val_auc:10.8}")
+        # Save the model weights.
+        torch.save(model.state_dict(), save_model_path)
 
-    #     # Save the model weights.
-    #     torch.save(model.state_dict(), save_model_path)
-
-    #     # Reset waited epochs.
-    #     waited_epochs = 0
+        # Reset waited epochs.
+        waited_epochs = 0
