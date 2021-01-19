@@ -122,7 +122,7 @@ print(cf)
 
 # Print sensitivity and specificity.
 print("Specificity: {0:0.4f}, Sensitivity: {1:0.4f}" \
-        .format(val_specificity, val_sensitivity])
+        .format(val_specificity, val_sensitivity))
 
 # Write sensitivities and specificities to file.
 with open(save_operating_thresholds_path, 'w') as csvfile:

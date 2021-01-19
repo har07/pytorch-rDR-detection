@@ -16,6 +16,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import torch
+import datetime
 
 print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
@@ -25,8 +26,8 @@ random.seed(432)
 
 # Various loading and saving constants.
 default_dataset_dir = "./data/fgadr/Seg-set-prep"
-default_save_model_path = "./tmp/model"
-default_save_summaries_dir = "./tmp/logs"
+default_save_model_path = "/content/model"
+default_save_summaries_dir = "/content/logs"
 default_save_operating_thresholds_path = "./tmp/op_pts.csv"
 
 parser = argparse.ArgumentParser(
@@ -41,27 +42,21 @@ parser.add_argument("-sm", "--save_model_path",
 parser.add_argument("-ss", "--save_summaries_dir",
                     help="path to folder where summaries should be saved",
                     default=default_save_summaries_dir)
-parser.add_argument("-so", "--save_operating_thresholds_path",
-                    help="path to where operating points should be saved",
-                    default=default_save_operating_thresholds_path)
 parser.add_argument("-v", "--verbose",
                     help="print log per batch instead of per epoch",
                     default=False)
 
 args = parser.parse_args()
-train_dir = str(args.train_dir)
+dataset_dir = str(args.dataset_dir)
 save_model_path = str(args.save_model_path)
 save_summaries_dir = str(args.save_summaries_dir)
-save_operating_thresholds_path = str(args.save_operating_thresholds_path)
 is_verbose = bool(args.verbose)
 
 print("""
 Dataset images folder: {},
 Saving model and graph checkpoints at: {},
 Saving summaries at: {},
-Saving operating points at: {},
-""".format(train_dir, save_model_path, save_summaries_dir,
-           save_operating_thresholds_path))
+""".format(dataset_dir, save_model_path, save_summaries_dir))
 
 # Various constants.
 num_channels = 3
@@ -74,6 +69,7 @@ decay = 4e-5
 train_batch_size = 32
 
 # Hyper-parameters for validation.
+min_epochs = 50
 num_epochs = 200
 wait_epochs = 10
 min_delta_auc = 0.01
@@ -84,7 +80,7 @@ kepsilon = 1e-7
 # Define thresholds.
 thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
-train_dataset, val_dataset = load_split_train_test(train_dir)
+train_dataset, val_dataset = load_split_train_test(dataset_dir)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
@@ -96,6 +92,12 @@ model = model.cuda()
 
 # Define optimizer.
 optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
+
+# Train for the specified amount of epochs.
+# Can be stopped early if peak of validation auc (Area under curve)
+#  is reached.
+latest_peak_auc = 0
+waited_epochs = 0
 
 def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
     def length(x): return len(str(x))
@@ -111,6 +113,21 @@ def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
 
     print(", ".join(m))
 
+def write_csv(filename, header=False, data=[]):
+    mode = 'a'
+    if header:
+        mode = 'w'
+    with open(save_summaries_dir + '/' + filename, mode) as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        if header:
+            writer.writerow(['epoch', 'count_data', 'tn', 'fp', 'fn', 'tp', 'train_loss', 'train_accuracy', 'accuracy', \
+                'sensitivity', 'specificity', 'auc', 'brier'])
+        else:
+            writer.writerow(["{}".format(x) for x in data[:6]] + ["{:0.4f}".format(x) for x in data[6:]])
+
+session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+write_csv(session_id+".csv", header=True)
+
 for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0.0
@@ -124,7 +141,7 @@ for epoch in range(num_epochs):
         output = model(data)
         target = target.unsqueeze(1)
         target = target.float()
-        loss = F.binary_cross_entropy(output, target)
+        loss = F.binary_cross_entropy_with_logits(output, target)
         loss.backward()    # calc gradients
         optimizer.step()
 
@@ -144,24 +161,28 @@ for epoch in range(num_epochs):
     cf, auc, brier = lib.evaluation.evaluate(model, train_dataset)
     tn, fp, fn, tp = cf.ravel()
     val_itmes = tn+fp+fn+tp
-    val_accuracy = (tn + tp)/val_itmes
+    val_accuracy = ((tn + tp)/val_itmes)*100
     val_sensitivity = tp/(tp + fn)
     val_specificity = tn/(tn + fp)
     val_auc = auc
+    train_loss = epoch_loss / len(train_dataset.dataset)
+    train_acc = epoch_acc/ len(train_dataset.dataset)
 
-    print('Items: {}\tTN: {}\tFP: {}\tFN: {}\tTP:{}'.format(val_itmes, tn, fp, fn, tp))
-    print('Epoch: {}\tTrain Loss: {:0.4f}\tTrain Acc: {:0.4f}\Acc: {:0.4f}\tSn: {:0.4f}\tSp: {:0.4f}\tAUC: {:10.8}\tBrier: {:8.6}'
-            .format(epoch,
-                      epoch_loss / len(train_dataset.dataset),
-                      epoch_acc/ len(train_dataset.dataset),
-                      val_accuracy, val_sensitivity,
-                      val_specificity, val_auc))
+    print('Epoch: {}\tCount Data: {}\tTN: {}\tFP: {}\tFN: {}\tTP:{}'.format(epoch, val_itmes, tn, fp, fn, tp))
+    print('TLoss: {:0.3f}\tTAcc: {:0.3f}\tAcc: {:0.3f}\tSn: {:0.3f}\tSp: {:0.3f}\tAUC: {:10.8}\tBrier: {:8.6}'
+            .format(train_loss, train_acc, val_accuracy, val_sensitivity,
+                      val_specificity, val_auc, brier))
 
-    val_auc = 0
+    write_csv(session_id+".csv", data=[epoch, val_itmes, tn, fp, fn, tp, train_loss, 
+                                        train_acc, val_accuracy, val_sensitivity, 
+                                        val_specificity, val_auc, brier])
+
     if val_auc < latest_peak_auc + min_delta_auc:
         # Stop early if peak of val auc has been reached.
         # If it is lower than the previous auc value, wait up to `wait_epochs`
         #  to see if it does not increase again.
+        if epoch < min_epochs:
+            continue
 
         if wait_epochs == waited_epochs:
             print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
@@ -174,7 +195,7 @@ for epoch in range(num_epochs):
         print(f"New peak auc reached: {val_auc:10.8}")
 
         # Save the model weights.
-        torch.save(model.state_dict(), save_model_path)
+        torch.save(model.state_dict(), save_model_path + "/" + session_id+".pt")
 
         # Reset waited epochs.
         waited_epochs = 0
