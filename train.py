@@ -68,7 +68,7 @@ decay = 4e-5
 train_batch_size = 32
 
 # Hyper-parameters for validation.
-min_epochs = 50
+min_epochs = 0
 num_epochs = 200
 wait_epochs = 10
 min_delta_auc = 0.01
@@ -79,7 +79,7 @@ kepsilon = 1e-7
 # Define thresholds.
 thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
-train_dataset, val_dataset = load_split_train_test(dataset_dir)
+train_dataset, val_dataset = load_split_train_test(dataset_dir, valid_size=0.3)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
@@ -132,6 +132,7 @@ for epoch in range(num_epochs):
     epoch_loss = 0.0
     epoch_acc = 0.0
     batch_num = 0
+    accum_target = []
     for data, target in train_dataset:
         data = data.cuda()
         target = target.cuda()
@@ -139,6 +140,8 @@ for epoch in range(num_epochs):
         output = model(data)
         target = target.unsqueeze(1)
         target = target.float()
+        if epoch == 0:
+            accum_target.extend(target.cpu().numpy())
         loss = F.binary_cross_entropy_with_logits(output, target)
         loss.backward()    # calc gradients
         optimizer.step()
@@ -155,8 +158,13 @@ for epoch in range(num_epochs):
                 epoch, num_epochs, batch_num, loss)
         batch_num += 1
 
+    # inspect training data composition in first epoch
+    if epoch == 0:
+        class_0 = len([x for x in accum_target if int(x) == 0])
+        print('training composition: 0={}, 1={}'.format(class_0, len(accum_target)-class_0))
+
     # Perform validation.
-    cf, auc, brier = lib.evaluation.evaluate(model, train_dataset)
+    cf, auc, brier = lib.evaluation.evaluate(model, val_dataset)
     tn, fp, fn, tp = cf.ravel()
     val_itmes = tn+fp+fn+tp
     val_accuracy = ((tn + tp)/val_itmes)*100

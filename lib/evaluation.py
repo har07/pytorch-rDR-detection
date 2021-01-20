@@ -10,7 +10,7 @@ def _get_operations_by_names(graph, names):
 def _get_tensors_by_names(graph, names):
     return [graph.get_tensor_by_name(name) for name in names]
 
-def evaluate(model, test_loader):
+def evaluate(model, test_loader, verbose=False):
     model.eval()
     accum_target = []
     accum_pred = []
@@ -29,7 +29,10 @@ def evaluate(model, test_loader):
             accum_target.extend(target.cpu().numpy())
         
     # print('accum_pred: ', accum_pred)
-    # print('accum_target: ', accum_target)    
+    # print('accum_target: ', accum_target)
+    if verbose:
+        class_0 = len([x for x in accum_target if int(x) == 0])
+        print('validation composition: 0={}, 1={}'.format(class_0, len(accum_target)-class_0))
     cf = confusion_matrix(accum_target, accum_pred)
     auc = roc_auc_score(accum_target, accum_pred)
     brier = brier_score_loss(accum_target, accum_pred)
