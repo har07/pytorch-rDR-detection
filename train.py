@@ -16,6 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import datetime
+import time
 
 print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
@@ -70,7 +71,7 @@ train_batch_size = 32
 # Hyper-parameters for validation.
 min_epochs = 0
 num_epochs = 200
-wait_epochs = 10
+wait_epochs = 20
 min_delta_auc = 0.01
 val_batch_size = 32
 num_thresholds = 200
@@ -79,7 +80,7 @@ kepsilon = 1e-7
 # Define thresholds.
 thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
-train_dataset, val_dataset = load_split_train_test(dataset_dir, valid_size=0.3)
+train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch_size, valid_bs=train_batch_size, valid_size=0.2)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
@@ -119,7 +120,8 @@ def write_csv(filename, header=False, data=[]):
     with open(save_summaries_dir + '/' + filename, mode) as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         if header:
-            writer.writerow(['epoch', 'count_data', 'tn', 'fp', 'fn', 'tp', 'train_loss', 'train_accuracy', 'accuracy', \
+            writer.writerow(['epoch', 'count_data', 'train_seconds', 'tn', 'fp', 'fn', 'tp', 
+                'train_loss', 'train_accuracy', 'accuracy', 
                 'sensitivity', 'specificity', 'auc', 'brier'])
         else:
             writer.writerow(["{}".format(x) for x in data[:6]] + ["{:0.4f}".format(x) for x in data[6:]])
@@ -128,6 +130,7 @@ session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
 
 for epoch in range(num_epochs):
+    t0 = time.time()
     model.train()
     epoch_loss = 0.0
     epoch_acc = 0.0
@@ -158,13 +161,18 @@ for epoch in range(num_epochs):
                 epoch, num_epochs, batch_num, loss)
         batch_num += 1
 
+    # measure training time
+    elapsed = time.time() - t0
+
     # inspect training data composition in first epoch
+    eval_verbose = False
     if epoch == 0:
+        eval_verbose = True
         class_0 = len([x for x in accum_target if int(x) == 0])
         print('training composition: 0={}, 1={}'.format(class_0, len(accum_target)-class_0))
 
     # Perform validation.
-    cf, auc, brier = lib.evaluation.evaluate(model, val_dataset)
+    cf, auc, brier = lib.evaluation.evaluate(model, val_dataset, verbose=eval_verbose)
     tn, fp, fn, tp = cf.ravel()
     val_itmes = tn+fp+fn+tp
     val_accuracy = ((tn + tp)/val_itmes)*100
@@ -174,12 +182,13 @@ for epoch in range(num_epochs):
     train_loss = epoch_loss / len(train_dataset.dataset)
     train_acc = epoch_acc/ len(train_dataset.dataset)
 
-    print('Epoch: {}\tCount Data: {}\tTN: {}\tFP: {}\tFN: {}\tTP:{}'.format(epoch, val_itmes, tn, fp, fn, tp))
+    print('Epoch: {}\tCount Data: {}\tTrain Sec: {:0.3f}\tTN: {}\tFP: {}\tFN: {}\tTP:{}'
+            .format(epoch, val_itmes, elapsed, tn, fp, fn, tp))
     print('TLoss: {:0.3f}\tTAcc: {:0.3f}\tAcc: {:0.3f}\tSn: {:0.3f}\tSp: {:0.3f}\tAUC: {:10.8}\tBrier: {:8.6}'
             .format(train_loss, train_acc, val_accuracy, val_sensitivity,
                       val_specificity, val_auc, brier))
 
-    write_csv(session_id+".csv", data=[epoch, val_itmes, tn, fp, fn, tp, train_loss, 
+    write_csv(session_id+".csv", data=[epoch, val_itmes, elapsed, tn, fp, fn, tp, train_loss, 
                                         train_acc, val_accuracy, val_sensitivity, 
                                         val_specificity, val_auc, brier])
 

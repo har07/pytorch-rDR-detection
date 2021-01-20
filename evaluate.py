@@ -23,6 +23,7 @@ random.seed(432)
 # Default settings.
 default_fgadr_dir = "/content/dataset/fgadr/Seg-set-prep"
 default_messidor2_dir = "/content/dataset/messidor2/Messidor-2-preproc"
+default_messidor_dir = "/content/dataset/messidor"
 default_load_model_path = "./tmp/model"
 default_batch_size = 32
 
@@ -34,6 +35,8 @@ parser.add_argument("-f", "--fgadr", action="store_true",
                     help="evaluate performance on FGADR Segmentation Set")
 parser.add_argument("-m2", "--messidor2", action="store_true",
                     help="evaluate performance on Messidor-2")
+parser.add_argument("-m", "--messidor", action="store_true",
+                    help="evaluate performance on Messidor Original")
 parser.add_argument("-o", "--other", action="store_true",
                     help="evaluate performance on your own dataset")
 parser.add_argument("--data_dir", help="directory where data set resides")
@@ -47,7 +50,7 @@ parser.add_argument("-b", "--batch_size",
 
 args = parser.parse_args()
 
-if bool(args.fgadr) == bool(args.messidor2) == bool(args.other):
+if bool(args.fgadr) == bool(args.messidor2) == bool(args.messidor) == bool(args.other):
     print("Can only evaluate one data set at once!")
     parser.print_help()
     sys.exit(2)
@@ -58,6 +61,8 @@ elif args.fgadr:
     data_dir = default_fgadr_dir
 elif args.messidor2:
     data_dir = default_messidor2_dir
+elif args.messidor:
+    data_dir = default_messidor_dir
 elif args.other and args.data_dir is None:
     print("Please specify --data_dir.")
     parser.print_help()
