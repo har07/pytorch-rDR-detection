@@ -13,7 +13,6 @@ import lib.evaluation
 from lib.dataset import load_split_train_test
 from torch.optim import RMSprop
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 import torch
 import datetime
@@ -134,10 +133,9 @@ for epoch in range(num_epochs):
     epoch_acc = 0.0
     batch_num = 0
     for data, target in train_dataset:
-        data, target = Variable(data), Variable(target)
         data = data.cuda()
         target = target.cuda()
-
+        optimizer.zero_grad()
         output = model(data)
         target = target.unsqueeze(1)
         target = target.float()

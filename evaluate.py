@@ -10,8 +10,10 @@ import lib.metrics
 import csv
 from glob import glob
 import torch
+import torch.nn as nn
 from lib.dataset import load_split_train_test
 from lib.evaluation import evaluate
+import torchvision
 
 print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
@@ -19,10 +21,9 @@ print(f"PyTorch version: {torch.__version__}")
 random.seed(432)
 
 # Default settings.
-default_fgadr_dir = "./data/fgadr/Seg-set-prep"
-default_messidor2_dir = "./data/messidor2/Messidor-2-preproc"
+default_fgadr_dir = "/content/dataset/fgadr/Seg-set-prep"
+default_messidor2_dir = "/content/dataset/messidor2/Messidor-2-preproc"
 default_load_model_path = "./tmp/model"
-default_save_operating_thresholds_path = "./tmp/test_op_pts.csv"
 default_batch_size = 32
 
 parser = argparse.ArgumentParser(
@@ -41,13 +42,8 @@ parser.add_argument("-lm", "--load_model_path",
                          "creates an ensemble if paths are comma separated "
                          "or a regexp",
                     default=default_load_model_path)
-parser.add_argument("-so", "--save_operating_thresholds_path",
-                    help="path to where operating points metrics should be saved",
-                    default=default_save_operating_thresholds_path)
 parser.add_argument("-b", "--batch_size",
                     help="batch size", default=default_batch_size)
-parser.add_argument("-op", "--operating_threshold",
-                    help="operating threshold", default=0.5)
 
 args = parser.parse_args()
 
@@ -69,26 +65,17 @@ elif args.other and args.data_dir is None:
 
 load_model_path = str(args.load_model_path)
 batch_size = int(args.batch_size)
-save_operating_thresholds_path = str(args.save_operating_thresholds_path)
-operating_threshold = float(args.operating_threshold)
 
 print("""
-Evaluating: {},
-Saving operating thresholds metrics at: {},
-Using operating treshold: {},
-""".format(data_dir, save_operating_thresholds_path, operating_threshold))
-print("Trying to load model(s):\n{}".format("\n".join(load_model_paths)))
+Evaluating: {}
+""".format(data_dir))
+print("Trying to load model: {}".format(load_model_path))
 
 # Other setting variables.
 num_channels = 3
 num_workers = 8
 prefetch_buffer_size = 2 * batch_size
-num_thresholds = 200
 kepsilon = 1e-7
-
-# Define thresholds.
-thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) \
-                + [operating_threshold]
 
 got_all_y = False
 all_y = []
@@ -104,7 +91,7 @@ model.fc = nn.Linear(num_ftrs, 1)
 model.load_state_dict(torch.load(load_model_path))
 model = model.cuda()
 
-_, val_dataset = load_split_train_test(train_dir, valid_size=1.0)
+_, val_dataset = load_split_train_test(data_dir, valid_size=1.0)
 
 cf, auc, brier = evaluate(model, val_dataset)
 tn, fp, fn, tp = cf.ravel()
@@ -117,22 +104,11 @@ val_specificity = tn/(tn + fp)
 print(f"Brier score: {brier:6.4}, AUC: {auc:10.8}")
 
 # Print confusion matrix.
-print(f"Confusion matrix at operating threshold {operating_threshold:0.3f}")
+print(f"Confusion matrix")
 print(cf)
 
 # Print sensitivity and specificity.
 print("Specificity: {0:0.4f}, Sensitivity: {1:0.4f}" \
         .format(val_specificity, val_sensitivity))
-
-# Write sensitivities and specificities to file.
-with open(save_operating_thresholds_path, 'w') as csvfile:
-    writer = csv.writer(csvfile, delimiter=' ')
-    writer.writerow(['accuracy', 'specificity', 'sensitivity'])
-
-    for idx in range(num_thresholds):
-        writer.writerow([
-            "{:0.4f}".format(x) for x in [
-                thresholds[idx], test_specificities[idx],
-                test_sensitivities[idx]]])
 
 sys.exit(0)

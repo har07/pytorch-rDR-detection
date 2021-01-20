@@ -1,5 +1,4 @@
 from lib.dataset import load_split_train_test
-from torch.autograd import Variable
 from torchvision import transforms
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,7 +31,6 @@ imshow(out, title=[class_names[x] for x in classes])
 input("Press Enter to continue...")
 
 # for data, target in train_loader:
-#     data, target = Variable(data), Variable(target)
 #     # print('data[0]: ', data[0])
 #     # print('target[1]: ', target[0])
 #     # im = transforms.ToPILImage()(data[0]).convert("RGB")
