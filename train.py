@@ -11,6 +11,8 @@ import lib.dataset
 import lib.evaluation
 # from lib.preprocess import rescale_min_1_to_1, rescale_0_to_1
 from lib.dataset import load_split_train_test
+from sgld.asgld_optim import ASGLD
+from sgld.sgld_optim import SGLD, pSGLD
 from torch.optim import RMSprop
 import torch.nn as nn
 import torch.nn.functional as F
@@ -69,7 +71,7 @@ decay = 4e-5
 train_batch_size = 32
 
 # Hyper-parameters for validation.
-min_epochs = 0
+min_epochs = 50
 num_epochs = 200
 wait_epochs = 20
 min_delta_auc = 0.01
@@ -91,7 +93,9 @@ model.fc = nn.Linear(num_ftrs, 1)
 model = model.cuda()
 
 # Define optimizer.
-optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
+# optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
+# optimizer = ASGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
+# optimizer = pSGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
 
 # Train for the specified amount of epochs.
 # Can be stopped early if peak of validation auc (Area under curve)
