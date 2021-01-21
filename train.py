@@ -47,12 +47,16 @@ parser.add_argument("-ss", "--save_summaries_dir",
 parser.add_argument("-v", "--verbose",
                     help="print log per batch instead of per epoch",
                     default=False)
+parser.add_argument("-b", "--balance",
+                    help="resample dataset to balance per class data",
+                    default=False)
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
 save_model_path = str(args.save_model_path)
 save_summaries_dir = str(args.save_summaries_dir)
 is_verbose = bool(args.verbose)
+balance = bool(args.balance)
 
 print("""
 Dataset images folder: {},
@@ -82,7 +86,7 @@ kepsilon = 1e-7
 # Define thresholds.
 thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
-train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch_size, valid_bs=train_batch_size, valid_size=0.2)
+train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch_size, valid_bs=train_batch_size, valid_size=0.2, balanced=balance)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
@@ -93,7 +97,7 @@ model.fc = nn.Linear(num_ftrs, 1)
 model = model.cuda()
 
 # Define optimizer.
-# optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
+optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
 # optimizer = ASGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
 # optimizer = pSGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
 
