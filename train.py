@@ -10,15 +10,17 @@ import lib.metrics
 import lib.dataset
 import lib.evaluation
 # from lib.preprocess import rescale_min_1_to_1, rescale_0_to_1
-from lib.dataset import load_split_train_test
+from lib.dataset import load_split_train_test, load_predefined_train_test
 from sgld.asgld_optim import ASGLD
+from sgld.kfac_precond import KFAC
 from sgld.sgld_optim import SGLD, pSGLD
-from torch.optim import RMSprop
+from torch.optim import RMSprop, SGD
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import datetime
 import time
+from torch.utils.tensorboard import SummaryWriter
 
 print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
@@ -50,6 +52,10 @@ parser.add_argument("-v", "--verbose",
 parser.add_argument("-b", "--balance",
                     help="resample dataset to balance per class data",
                     default=False)
+parser.add_argument("-td", "--train_dataset",
+                    help="path to folder that contains the train dataset")
+parser.add_argument("-vd", "--valid_dataset",
+                    help="path to folder that contains the validation dataset")
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -57,12 +63,16 @@ save_model_path = str(args.save_model_path)
 save_summaries_dir = str(args.save_summaries_dir)
 is_verbose = bool(args.verbose)
 balance = bool(args.balance)
+train_dataset = str(args.train_dataset)
+valid_dataset = str(args.valid_dataset)
 
 print("""
 Dataset images folder: {},
 Saving model and graph checkpoints at: {},
 Saving summaries at: {},
-""".format(dataset_dir, save_model_path, save_summaries_dir))
+Training images folder: {},
+Validation images folder: {},
+""".format(dataset_dir, save_model_path, save_summaries_dir, train_dataset, valid_dataset))
 
 # Various constants.
 num_channels = 3
@@ -75,7 +85,7 @@ decay = 4e-5
 train_batch_size = 32
 
 # Hyper-parameters for validation.
-min_epochs = 50
+min_epochs = 0
 num_epochs = 200
 wait_epochs = 20
 min_delta_auc = 0.01
@@ -86,7 +96,10 @@ kepsilon = 1e-7
 # Define thresholds.
 thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
-train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch_size, valid_bs=train_batch_size, valid_size=0.2, balanced=balance)
+if train_dataset != 'None' and valid_dataset != 'None':
+    train_dataset, val_dataset = load_predefined_train_test(train_dataset, valid_dataset, bs=train_batch_size, valid_bs=train_batch_size)
+else:
+    train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch_size, valid_bs=train_batch_size, valid_size=0.2, balanced=balance)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
@@ -100,12 +113,16 @@ model = model.cuda()
 optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
 # optimizer = ASGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
 # optimizer = pSGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
+# precond = KFAC(model, 0.01)
+# optimizer = SGD(model.parameters(), lr=learning_rate)
 
 # Train for the specified amount of epochs.
 # Can be stopped early if peak of validation auc (Area under curve)
 #  is reached.
 latest_peak_auc = 0
 waited_epochs = 0
+
+writer = SummaryWriter()
 
 def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
     def length(x): return len(str(x))
@@ -134,6 +151,15 @@ def write_csv(filename, header=False, data=[]):
         else:
             writer.writerow(["{}".format(x) for x in data[:6]] + ["{:0.4f}".format(x) for x in data[6:]])
 
+def write_board(epoch, tloss, tacc, acc, sn, sp, auc, brier):
+    writer.add_scalar("Train Loss/train", tloss, epoch)
+    writer.add_scalar("Train Accuracy/train", tacc, epoch)
+    writer.add_scalar("Val Accuracy/train", acc, epoch)
+    writer.add_scalar("Sensitivity/train", sn, epoch)
+    writer.add_scalar("Specificity/train", sp, epoch)
+    writer.add_scalar("AUC/train", auc, epoch)
+    writer.add_scalar("Brier/train", brier, epoch)
+
 session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
 
@@ -155,6 +181,7 @@ for epoch in range(num_epochs):
             accum_target.extend(target.cpu().numpy())
         loss = F.binary_cross_entropy_with_logits(output, target)
         loss.backward()    # calc gradients
+        precond.step()
         optimizer.step()
 
         epoch_loss += output.shape[0] * loss.item()
@@ -196,9 +223,12 @@ for epoch in range(num_epochs):
             .format(train_loss, train_acc, val_accuracy, val_sensitivity,
                       val_specificity, val_auc, brier))
 
+    write_board(epoch, train_loss, train_acc, val_accuracy, val_sensitivity, val_specificity, val_auc, brier)
     write_csv(session_id+".csv", data=[epoch, val_itmes, elapsed, tn, fp, fn, tp, train_loss, 
                                         train_acc, val_accuracy, val_sensitivity, 
                                         val_specificity, val_auc, brier])
+
+    writer.flush()
 
     if val_auc < latest_peak_auc + min_delta_auc:
         # Stop early if peak of val auc has been reached.

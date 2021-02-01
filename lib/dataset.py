@@ -68,6 +68,26 @@ class ImbalancedDatasetSampler(torch.utils.data.sampler.Sampler):
     def __len__(self):
         return self.num_samples
 
+def load_predefined_train_test(traindir, testdir, bs=50, valid_bs=57):
+    train_transforms = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.ColorJitter(
+                brightness=BRIGHTNESS_MAX_DELTA,
+                contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
+                saturation=(SATURATION_LOWER,SATURATION_UPPER),
+                hue=HUE_MAX_DELTA),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5)) # normalize to range [-1,1]
+        ])  
+    test_transforms = transforms.Compose([
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
+    train_data = datasets.ImageFolder(traindir, transform=train_transforms)
+    test_data = datasets.ImageFolder(testdir, transform=test_transforms)
+    trainloader = torch.utils.data.DataLoader(train_data, batch_size=bs, shuffle=True)
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=valid_bs, shuffle=True)
+    return trainloader, testloader
 
 def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=False):
     # ToTensor() already prodcue tensor with channel first: C x H x W
