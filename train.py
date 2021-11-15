@@ -179,9 +179,8 @@ for epoch in range(num_epochs):
         target = target.float()
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
-        loss = F.binary_cross_entropy_with_logits(output, target)
+        loss = F.binary_cross_entropy_with_logits(output, target, weight=torch.Tensor([1.0, 4.0]))
         loss.backward()    # calc gradients
-        precond.step()
         optimizer.step()
 
         epoch_loss += output.shape[0] * loss.item()
