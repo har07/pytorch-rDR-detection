@@ -16,7 +16,6 @@ from sgld.asgld_optim import ASGLD
 from sgld.psgld_optim import pSGLD
 from sgld.ksgld_optim import KSGLD
 from sgld.eksgld_optim import EKSGLD
-from sgld.sgld_optim import SGLD
 from torch.optim import RMSprop, SGD
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,7 +36,7 @@ default_dataset_dir = "./data/fgadr/Seg-set-prep"
 default_save_model_path = "/content/model"
 default_save_summaries_dir = "/content/logs"
 default_save_operating_thresholds_path = "./tmp/op_pts.csv"
-default_yaml =  "config/batch_cifar10.yaml"
+default_yaml =  "config/train_psgld.yaml"
 
 parser = argparse.ArgumentParser(
                     description="Trains and saves neural network for "
@@ -281,18 +280,15 @@ for epoch in range(num_epochs):
     train_loss = epoch_loss / len(train_dataset.dataset)
     train_acc = epoch_acc/ len(train_dataset.dataset)
 
-    print('Epoch: {}\tCount Data: {}\tTrain Sec: {:0.3f}\tTN: {}\tFP: {}\tFN: {}\tTP:{}'
-            .format(epoch, val_itmes, elapsed, tn, fp, fn, tp))
-    print('TLoss: {:0.3f}\tTAcc: {:0.3f}\tAcc: {:0.3f}\tSn: {:0.3f}\tSp: {:0.3f}\tAUC: {:10.8}\tBrier: {:8.6}'
-            .format(train_loss, train_acc, val_accuracy, val_sensitivity,
-                      val_specificity, val_auc, brier))
+    print(f'Epoch: {epoch}\tCount Data: {val_itmes}\tTrain Sec: {elapsed:0.3f}' + 
+            f'\tTN: {tn}\tFP: {fp}\tFN: {fn}\tTP:{tp}')
+    print(f'TLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}\tSn: {val_sensitivity:0.3f}' + 
+            f'\tSp: {val_specificity:0.3f}\tAUC: {val_auc:10.8}\tBrier: {brier:8.6}')
 
     write_board(epoch, train_loss, train_acc, val_accuracy, val_sensitivity, val_specificity, val_auc, brier)
     write_csv(session_id+".csv", data=[epoch, val_itmes, elapsed, tn, fp, fn, tp, train_loss, 
                                         train_acc, val_accuracy, val_sensitivity, 
                                         val_specificity, val_auc, brier])
-
-    writer.flush()
 
     # Save the model weights max for the last 20 epochs
     if epochs - epoch < 20:
@@ -332,3 +328,8 @@ for epoch in range(num_epochs):
 
         # Reset waited epochs.
         waited_epochs = 0
+
+writer.flush()
+print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}")
+print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}", file=f)
+f.close()

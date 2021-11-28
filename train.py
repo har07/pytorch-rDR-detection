@@ -11,9 +11,6 @@ import lib.dataset
 import lib.evaluation
 # from lib.preprocess import rescale_min_1_to_1, rescale_0_to_1
 from lib.dataset import load_split_train_test, load_predefined_train_test
-from sgld.asgld_optim import ASGLD
-from sgld.kfac_precond import KFAC
-from sgld.sgld_optim import SGLD, pSGLD
 from torch.optim import RMSprop, SGD
 import torch.nn as nn
 import torch.nn.functional as F
