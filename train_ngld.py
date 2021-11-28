@@ -87,7 +87,6 @@ with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
 
 seed = config['seed']
-epochs = config['epoch']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
@@ -105,16 +104,11 @@ f = open(f'{save_summaries_dir}/train_logs_{session_id_prefix}.txt', 'w')
 optimizer_name = config['optimizer']
 
 # Hyper-parameters for validation.
-min_epochs = 0
-num_epochs = 200
-wait_epochs = 20
+min_epochs = config['min_epochs']
+num_epochs = config['epoch']
+wait_epochs = config['wait_epoch']
 min_delta_auc = 0.01
-val_batch_size = 32
-num_thresholds = 200
-kepsilon = 1e-7
 
-# Define thresholds.
-thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
 if train_dataset != 'None' and valid_dataset != 'None':
     train_dataset, val_dataset = load_predefined_train_test(train_dataset, valid_dataset, bs=train_batch, valid_bs=test_batch)
@@ -291,7 +285,7 @@ for epoch in range(num_epochs):
                                         val_specificity, val_auc, brier])
 
     # Save the model weights max for the last 20 epochs
-    if epochs - epoch < 20:
+    if num_epochs - epoch < 20:
         torch.save({
                 'model_state_dict': model.state_dict(),
                 # 'optimizer_state_dict': optimizer.state_dict(),

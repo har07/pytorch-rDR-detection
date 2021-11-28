@@ -1,5 +1,7 @@
 seed: 1
-epoch: 10
+min_epoch: 100
+epoch: 100
+wait_epoch: 20
 block_size: 20
 block_decay: .5
 # model: resnet.ResNet18
