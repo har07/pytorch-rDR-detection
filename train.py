@@ -179,7 +179,7 @@ for epoch in range(num_epochs):
         target = target.float()
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
-        loss = F.binary_cross_entropy_with_logits(output, target, weight=torch.Tensor([1.0, 4.0]))
+        loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([1.0, 4.0]).cuda())
         loss.backward()    # calc gradients
         optimizer.step()
 
