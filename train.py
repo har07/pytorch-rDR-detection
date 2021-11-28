@@ -85,7 +85,7 @@ decay = 4e-5
 train_batch_size = 32
 
 # Hyper-parameters for validation.
-min_epochs = 0
+min_epochs = 100
 num_epochs = 200
 wait_epochs = 20
 min_delta_auc = 0.01
