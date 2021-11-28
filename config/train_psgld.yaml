@@ -1,0 +1,17 @@
+seed: 1
+epoch: 10
+block_size: 20
+block_decay: .5
+# model: resnet.ResNet18
+optimizer: pSGLD
+pSGLD:
+  lr: 1.e-3
+  train_size: 50000
+  alpha: .95
+  eps: 5.e-5
+  num_burn_in_steps: 300
+  centered: False
+  addnoise: True
+dataset:
+  train_batch: 32
+  test_batch: 32
