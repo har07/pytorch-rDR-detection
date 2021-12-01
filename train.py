@@ -56,6 +56,9 @@ parser.add_argument("-td", "--train_dataset",
                     help="path to folder that contains the train dataset")
 parser.add_argument("-vd", "--valid_dataset",
                     help="path to folder that contains the validation dataset")
+parser.add_argument("-pw", "--positive_weight",
+                    help="weight factor for postive class",
+                    default=4.0)
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -65,6 +68,7 @@ is_verbose = bool(args.verbose)
 balance = bool(args.balance)
 train_dataset = str(args.train_dataset)
 valid_dataset = str(args.valid_dataset)
+positive_weight = float(args.positive_weight)
 
 print("""
 Dataset images folder: {},
@@ -179,7 +183,7 @@ for epoch in range(num_epochs):
         target = target.float()
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
-        loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([4.0]).cuda())
+        loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([positive_weight]).cuda())
         loss.backward()    # calc gradients
         optimizer.step()
 
