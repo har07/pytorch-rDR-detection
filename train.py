@@ -59,6 +59,12 @@ parser.add_argument("-vd", "--valid_dataset",
 parser.add_argument("-pw", "--positive_weight",
                     help="weight factor for postive class",
                     default=4.0)
+parser.add_argument("-bs", "--batch_size",
+                    help="batch size",
+                    default=32)
+parser.add_argument("-me", "--max_epoch",
+                    help="number of max training epoch",
+                    default=200)
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -69,6 +75,8 @@ balance = bool(args.balance)
 train_dataset = str(args.train_dataset)
 valid_dataset = str(args.valid_dataset)
 positive_weight = float(args.positive_weight)
+batch_size = int(args.batch_size)
+max_epoch = int(args.max_epoch)
 
 print("""
 Dataset images folder: {},
@@ -86,11 +94,9 @@ num_workers = 8
 # Hyper-parameters for training.
 learning_rate = 1e-3
 decay = 4e-5
-train_batch_size = 32
 
 # Hyper-parameters for validation.
 min_epochs = 0
-num_epochs = 200
 wait_epochs = 20
 min_delta_auc = 0.01
 val_batch_size = 32
@@ -101,9 +107,9 @@ kepsilon = 1e-7
 thresholds = lib.metrics.generate_thresholds(num_thresholds, kepsilon) + [0.5]
 
 if train_dataset != 'None' and valid_dataset != 'None':
-    train_dataset, val_dataset = load_predefined_train_test(train_dataset, valid_dataset, bs=train_batch_size, valid_bs=train_batch_size)
+    train_dataset, val_dataset = load_predefined_train_test(train_dataset, valid_dataset, bs=batch_size, valid_bs=batch_size)
 else:
-    train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch_size, valid_bs=train_batch_size, valid_size=0.2, balanced=balance)
+    train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=batch_size, valid_bs=batch_size, valid_size=0.2, balanced=balance)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
@@ -167,7 +173,7 @@ def write_board(epoch, tloss, tacc, acc, sn, sp, auc, brier):
 session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
 
-for epoch in range(num_epochs):
+for epoch in range(max_epoch):
     t0 = time.time()
     model.train()
     epoch_loss = 0.0
@@ -196,7 +202,7 @@ for epoch in range(num_epochs):
         # Print a nice training status. 
         if is_verbose:
             print_training_status(
-                epoch, num_epochs, batch_num, loss)
+                epoch, max_epoch, batch_num, loss)
         batch_num += 1
 
     # measure training time
