@@ -72,7 +72,7 @@ parser.add_argument("-me", "--max_epoch",
 parser.add_argument("-we", "--wait_epoch",
                     help="number of epoch before terminating training if AUC doesn't increase",
                     default=10)
-parser.add_argument("-c", "--checkpoint",
+parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
 
 args = parser.parse_args()
