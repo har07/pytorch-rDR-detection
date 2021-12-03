@@ -26,7 +26,11 @@ print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-random.seed(432)
+seed = 432
+torch.cuda.set_device(0)
+torch.manual_seed(seed)
+random.seed(seed)
+np.random.seed(seed)
 
 # Various loading and saving constants.
 default_dataset_dir = "./data/fgadr/Seg-set-prep"
