@@ -266,7 +266,6 @@ for epoch in range(start_epoch, max_epoch):
             last_epoch = True
             print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
                 .format(epoch+1, latest_peak_auc))
-            break
 
         waited_epochs += 1
     else:
@@ -288,3 +287,4 @@ for epoch in range(start_epoch, max_epoch):
             'latest_peak_auc': latest_peak_auc,
             'waited_epochs': waited_epochs,
         }, f"{save_model_path}/{session_id}_chk.pt")
+        break
