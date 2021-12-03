@@ -68,6 +68,8 @@ parser.add_argument("-me", "--max_epoch",
 parser.add_argument("-we", "--wait_epoch",
                     help="number of epoch before terminating training if AUC doesn't increase",
                     default=10)
+parser.add_argument("-c", "--checkpoint",
+                    help="Checkpoint file")
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -81,6 +83,7 @@ positive_weight = float(args.positive_weight)
 batch_size = int(args.batch_size)
 max_epoch = int(args.max_epoch)
 wait_epochs = int(args.wait_epoch)
+checkpoint = str(args.checkpoint)
 
 print("""
 Dataset images folder: {},
@@ -124,16 +127,22 @@ model = model.cuda()
 
 # Define optimizer.
 optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
-# optimizer = ASGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
-# optimizer = pSGLD(model.parameters(), lr=learning_rate, weight_decay=decay)
-# precond = KFAC(model, 0.01)
-# optimizer = SGD(model.parameters(), lr=learning_rate)
 
 # Train for the specified amount of epochs.
 # Can be stopped early if peak of validation auc (Area under curve)
 #  is reached.
 latest_peak_auc = 0
 waited_epochs = 0
+
+# Load checkpoint if provided
+start_epoch = 0
+if checkpoint != "":
+    chk = torch.load(checkpoint)
+    start_epoch = chk['epoch'] + 1
+    latest_peak_auc = chk['latest_peak_auc']
+    waited_epochs = chk['waited_epochs']
+    optimizer.load_state_dict(chk['optimizer_state_dict'])
+    model.load_state_dict(chk['model_state_dict'])
 
 log_dir = f"{save_model_path}/runs"
 if not os.path.exists(log_dir):
@@ -179,7 +188,7 @@ def write_board(epoch, tloss, tacc, acc, sn, sp, auc, brier):
 session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
 
-for epoch in range(max_epoch):
+for epoch in range(start_epoch, max_epoch):
     t0 = time.time()
     model.train()
     epoch_loss = 0.0
