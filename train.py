@@ -65,6 +65,9 @@ parser.add_argument("-bs", "--batch_size",
 parser.add_argument("-me", "--max_epoch",
                     help="number of max training epoch",
                     default=200)
+parser.add_argument("-we", "--wait_epoch",
+                    help="number of epoch before terminating training if AUC doesn't increase",
+                    default=10)
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -77,6 +80,7 @@ valid_dataset = str(args.valid_dataset)
 positive_weight = float(args.positive_weight)
 batch_size = int(args.batch_size)
 max_epoch = int(args.max_epoch)
+wait_epochs = int(args.wait_epoch)
 
 print("""
 Dataset images folder: {},
@@ -97,7 +101,6 @@ decay = 4e-5
 
 # Hyper-parameters for validation.
 min_epochs = 0
-wait_epochs = 20
 min_delta_auc = 0.01
 val_batch_size = 32
 num_thresholds = 200
@@ -132,7 +135,10 @@ optimizer = RMSprop(model.parameters(), lr=learning_rate, weight_decay=decay)
 latest_peak_auc = 0
 waited_epochs = 0
 
-writer = SummaryWriter()
+log_dir = f"{save_model_path}/runs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+writer = SummaryWriter(log_dir=log_dir)
 
 def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
     def length(x): return len(str(x))
@@ -239,6 +245,7 @@ for epoch in range(max_epoch):
 
     writer.flush()
 
+    last_epoch = epoch == max_epoch-1
     if val_auc < latest_peak_auc + min_delta_auc:
         # Stop early if peak of val auc has been reached.
         # If it is lower than the previous auc value, wait up to `wait_epochs`
@@ -247,6 +254,7 @@ for epoch in range(max_epoch):
             continue
 
         if wait_epochs == waited_epochs:
+            last_epoch = True
             print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
                 .format(epoch+1, latest_peak_auc))
             break
@@ -261,3 +269,13 @@ for epoch in range(max_epoch):
 
         # Reset waited epochs.
         waited_epochs = 0
+
+    if last_epoch:
+        # save params so that we can resume training
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'epoch': epoch,
+            'latest_peak_auc': latest_peak_auc,
+            'waited_epochs': waited_epochs,
+        }, f"{save_model_path}/{session_id}_chk.pt")
