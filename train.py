@@ -26,11 +26,6 @@ print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
 
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-seed = 432
-torch.cuda.set_device(0)
-torch.manual_seed(seed)
-random.seed(seed)
-np.random.seed(seed)
 
 # Various loading and saving constants.
 default_dataset_dir = "./data/fgadr/Seg-set-prep"
@@ -74,6 +69,8 @@ parser.add_argument("-we", "--wait_epoch",
                     default=10)
 parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
+parser.add_argument("-sd", "--seed", default=432,
+                    help="Fix random seed for reproducability")
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -88,6 +85,12 @@ batch_size = int(args.batch_size)
 max_epoch = int(args.max_epoch)
 wait_epochs = int(args.wait_epoch)
 checkpoint = str(args.checkpoint)
+seed = int(args.seed)
+
+torch.cuda.set_device(0)
+torch.manual_seed(seed)
+random.seed(seed)
+np.random.seed(seed)
 
 print("""
 Dataset images folder: {},
