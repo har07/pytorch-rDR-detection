@@ -1,0 +1,21 @@
+seed: 1
+trials: 5
+epoch: 10
+wait_epoch: 20
+block_size: 20
+block_decay: .5
+optimizer: SGLD
+SGLD:
+  fixed:
+    train_size: 10000
+    lr_decay: 2.e-2
+    weight_decay: 0.
+    num_burn_in_steps: 300
+  tune:
+    lr:
+      categorical:
+        choices: [5.e-5, 5.e-4, 5.e-3, 5.e-2, .5]
+dataset:
+  batch_size: 128
+  train_dataset: /path/to/traindir
+  valid_dataset: /path/to/validdir
