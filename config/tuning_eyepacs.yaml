@@ -1,5 +1,5 @@
 seed: 1
-trials: 5
+trials: 3
 epoch: 10
 block_size: 20
 block_decay: .5
@@ -10,7 +10,7 @@ RMSprop:
   tune:
     lr:
       categorical:
-        choices: [1.e-3, 1.e-2]
+        choices: [1.e-4, 1.e-3, 1.e-2]
 SGLD:
   fixed:
     train_size: 10000
