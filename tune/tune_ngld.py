@@ -80,6 +80,8 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
             target = target.cuda()
             optimizer.zero_grad()
             output = model(data)
+            target = target.unsqueeze(1)
+            target = target.float()
             loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([1.0]).cuda())
             loss.backward()    # calc gradients
 
