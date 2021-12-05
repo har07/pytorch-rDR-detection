@@ -75,7 +75,7 @@ model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logi
 model = model.cuda()
 
 # use held-out training set for hyperparameter tuning
-def train(model, optimizer, train_loader, epochs, lr):
+def train(trial, model, optimizer, train_loader, epochs, lr):
     current_lr = lr
     # check if optimizer.step has 'lr' param
     step_args = inspect.getfullargspec(optimizer.step)
@@ -98,6 +98,11 @@ def train(model, optimizer, train_loader, epochs, lr):
                 optimizer.step()
 
             epoch_loss += output.shape[0] * loss.item()
+            trial.report(loss.item(), epoch)
+
+            if trial.should_prune():
+                raise optuna.TrialPruned()
+
 
         # update learning rate
         if blocksize > 0 and blockdecay > 0 and ((epoch) % blocksize) == 0:
@@ -137,7 +142,7 @@ def objective(trial):
         optimizer = eval(optimizer_name)(model.parameters(), **optim_params)
 
     lr = optim_params['lr']
-    bce_loss = train(model, optimizer, train_loader, epochs, lr)
+    bce_loss = train(trial, model, optimizer, train_loader, epochs, lr)
     return bce_loss
 
 def print_stats(study):
