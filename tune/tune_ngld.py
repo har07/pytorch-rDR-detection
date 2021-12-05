@@ -100,10 +100,6 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
                 optimizer.step()
 
             epoch_loss += output.shape[0] * loss.item()
-            trial.report(loss.item(), epoch)
-
-            if trial.should_prune():
-                raise optuna.TrialPruned()
 
 
         # update learning rate
@@ -114,6 +110,10 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
 
         # epoch loss
         train_loss = epoch_loss / len(heldout_loader.dataset)
+        trial.report(train_loss, epoch-1)
+
+        if trial.should_prune():
+            raise optuna.TrialPruned()
 
     return train_loss
 
