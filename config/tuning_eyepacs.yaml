@@ -1,7 +1,6 @@
 seed: 1
 trials: 5
 epoch: 10
-wait_epoch: 20
 block_size: 20
 block_decay: .5
 optimizer: RMSprop

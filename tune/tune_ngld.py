@@ -30,14 +30,14 @@ parser.add_argument("-y", "--yaml", help="yaml config file location",
                     default=default_yaml)
 
 args = parser.parse_args()
-if args.study:
-    study_name = str(args.study)
-else:
-    study_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
 yaml_path = str(args.yaml)
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
+
+if 'study' in config:
+    study_name = config['study']
+else:
+    study_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 seed = config['seed']
 epochs = config['epoch']
