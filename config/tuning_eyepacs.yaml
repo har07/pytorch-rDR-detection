@@ -4,7 +4,7 @@ epoch: 10
 wait_epoch: 20
 block_size: 20
 block_decay: .5
-optimizer: SGLD
+optimizer: RMSprop
 RMSprop:
   fixed:
     weight_decay: 4.e-5

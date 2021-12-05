@@ -21,24 +21,10 @@ default_trial = 50
 default_epochs = 10
 default_batch_size = 128
 default_seed = 0
-default_yaml = "config/tuning_eyepacs.yaml"
+default_yaml = "../tuning_eyepacs.yaml"
 
 parser = argparse.ArgumentParser(
                     description="Perform  hyperparameter tuning of SGLD optimizer for eyepacs classification.")
-parser.add_argument("-s", "--study",
-                    help="hyperparam optimization study name. determine database file to save to.")
-parser.add_argument("-t", "--trials", help="number of trials to perform",
-                    default=default_trial)
-parser.add_argument("-e", "--epochs", help="number of epoch to perform",
-                    default=default_epochs)
-parser.add_argument("-o", "--optimizer",
-                    help="optimizer name: sgld, sgld2, sgld3, psgld, psgld2, psgld3, asgld, ksgld")
-parser.add_argument("-bs", "--blocksize", help="block decay size", default=0)
-parser.add_argument("-bd", "--blockdecay", help="block decay", default=0)
-parser.add_argument("-td", "--train_dataset",
-                    help="path to folder that contains the train dataset")
-parser.add_argument("-vd", "--valid_dataset",
-                    help="path to folder that contains the validation dataset")
 parser.add_argument("-y", "--yaml", help="yaml config file location",
                     default=default_yaml)
 
