@@ -2,6 +2,8 @@ import torch.utils
 import numpy as np
 from torchvision import datasets, transforms
 from random import shuffle
+from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data import Subset
 import os
 
 BRIGHTNESS_MAX_DELTA = 0.125
@@ -113,7 +115,6 @@ def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=F
     indices = list(range(num_train))
     split = int(np.floor(valid_size * num_train))
     np.random.shuffle(indices)
-    from torch.utils.data.sampler import SubsetRandomSampler
     train_idx, test_idx = indices[split:], indices[:split]
     if balanced:
         train_sampler = ImbalancedDatasetSampler(train_data, indices=train_idx)
@@ -125,3 +126,25 @@ def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=F
     testloader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=valid_bs)
     return trainloader, testloader
 
+def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size=128):
+    train_transforms = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.ColorJitter(
+                brightness=BRIGHTNESS_MAX_DELTA,
+                contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
+                saturation=(SATURATION_LOWER,SATURATION_UPPER),
+                hue=HUE_MAX_DELTA),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5)) # normalize to range [-1,1]
+        ])  
+    test_transforms = transforms.Compose([
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
+    heldout_data = datasets.ImageFolder(heldoutdir, transform=train_transforms)
+    train_data = datasets.ImageFolder(traindir, transform=train_transforms)
+    test_data = datasets.ImageFolder(testdir, transform=test_transforms)
+    trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
+    heldoutoader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
+    return heldoutoader, testloader, trainloader
