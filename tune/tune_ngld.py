@@ -124,8 +124,8 @@ def objective(trial):
         tunable_param = tunable_params[k]
         suggest_type = next(iter(tunable_param))
         suggest_params = {}
-        for l in tunable_params[suggest_type]:
-            suggest_params[l] = tunable_params[suggest_type][l]
+        for l in tunable_param[suggest_type]:
+            suggest_params[l] = tunable_param[suggest_type][l]
         suggests = eval(f"trial.suggest_{suggest_type}")(k, **suggest_params)
         optim_params[k] = suggests
         
