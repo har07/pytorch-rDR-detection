@@ -7,15 +7,16 @@ import torchvision
 import torch.optim as optim
 from torch.optim import RMSprop, SGD
 import torch.nn.functional as F
-from lib.dataset import load_predefined_heldout_train_test
-from sgld.sgld_optim import SGLD
-import lib.lr_setter as lr_setter
 import argparse
 import datetime
 import inspect
 import yaml
-
 import optuna
+
+sys.path.insert(1, '../')
+from lib.dataset import load_predefined_heldout_train_test
+from sgld.sgld_optim import SGLD
+import lib.lr_setter as lr_setter
 
 default_trial = 50
 default_epochs = 10
