@@ -280,7 +280,7 @@ for epoch in range(start_epoch, max_epoch):
         print(f"New peak auc reached: {val_auc:10.8}")
 
         # Save the model weights.
-        torch.save(model.state_dict(), save_model_path + "/" + session_id+".pt")
+        torch.save(model.state_dict(), f"{save_model_path}/{session_id}_epoch{epoch}.pt")
 
         # Reset waited epochs.
         waited_epochs = 0
