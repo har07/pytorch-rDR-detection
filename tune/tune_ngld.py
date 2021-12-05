@@ -5,6 +5,7 @@ import sys
 import torch
 import torchvision
 import torch.optim as optim
+import torch.nn as nn
 from torch.optim import RMSprop, SGD
 import torch.nn.functional as F
 import argparse
@@ -62,7 +63,12 @@ np.random.seed(seed)
 heldout_loader, _, _ = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
                                                         valid_dataset, batch_size=batch_size)
 
+# Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
+
+# Reset the layer with the same amount of neurons as labels.
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, 1)
 model = model.cuda()
 
 # use held-out training set for hyperparameter tuning
