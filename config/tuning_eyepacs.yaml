@@ -5,6 +5,13 @@ wait_epoch: 20
 block_size: 20
 block_decay: .5
 optimizer: SGLD
+RMSprop:
+  fixed:
+    weight_decay: 4.e-5
+  tune:
+    lr:
+      categorical:
+        choices: [1.e-3, 1.e-2]
 SGLD:
   fixed:
     train_size: 10000
@@ -17,5 +24,6 @@ SGLD:
         choices: [5.e-5, 5.e-4, 5.e-3, 5.e-2, .5]
 dataset:
   batch_size: 128
-  train_dataset: /path/to/traindir
-  valid_dataset: /path/to/validdir
+  train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
+  valid_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/test
+  heldout_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/heldout

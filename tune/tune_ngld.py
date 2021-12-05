@@ -5,8 +5,9 @@ import sys
 import torch
 import torchvision
 import torch.optim as optim
+from torch.optim import RMSprop, SGD
 import torch.nn.functional as F
-from lib.dataset import load_predefined_train_test
+from lib.dataset import load_predefined_heldout_train_test
 from sgld.sgld_optim import SGLD
 import lib.lr_setter as lr_setter
 import argparse
@@ -59,6 +60,7 @@ blockdecay = config['block_decay']
 batch_size = config['batch_size']
 train_dataset = config['train_dataset']
 valid_dataset = config['valid_dataset']
+heldout_dataset = config['heldout_dataset']
 optimizer_name = config['optimizer']
 
 accept_model = False
@@ -70,12 +72,14 @@ torch.manual_seed(seed)
 random.seed(seed)
 np.random.seed(seed)
 
-train_loader, _ = load_predefined_train_test(train_dataset, valid_dataset, bs=batch_size, valid_bs=batch_size)
+heldout_loader, _, _ = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
+                                                        valid_dataset, batch_size=batch_size)
+
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
 model = model.cuda()
 
 # use held-out training set for hyperparameter tuning
-def train(trial, model, optimizer, train_loader, epochs, lr):
+def train(trial, model, optimizer, heldout_loader, epochs, lr):
     current_lr = lr
     # check if optimizer.step has 'lr' param
     step_args = inspect.getfullargspec(optimizer.step)
@@ -84,7 +88,7 @@ def train(trial, model, optimizer, train_loader, epochs, lr):
     for epoch in range(1, epochs+1):
         model.train()
         epoch_loss = 0.0
-        for data, target in train_loader:
+        for data, target in heldout_loader:
             data = data.cuda()
             target = target.cuda()
             optimizer.zero_grad()
@@ -92,7 +96,10 @@ def train(trial, model, optimizer, train_loader, epochs, lr):
             loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([1.0]).cuda())
             loss.backward()    # calc gradients
 
-            if blocksize > 0 and blockdecay > 0 and lr_param:
+            # do not perform custom lr setting for built-in optimizer
+            if optimizer_name in ['SGD', 'RMSprop']:
+                optimizer.step()
+            elif blocksize > 0 and blockdecay > 0 and lr_param:
                 optimizer.step(lr=current_lr)
             else:
                 optimizer.step()
@@ -111,7 +118,7 @@ def train(trial, model, optimizer, train_loader, epochs, lr):
                 optimizer = lr_setter.update_lr(optimizer, current_lr)
 
         # epoch loss
-        train_loss = epoch_loss / len(train_loader.dataset)
+        train_loss = epoch_loss / len(heldout_loader.dataset)
 
     return train_loss
 
@@ -142,7 +149,7 @@ def objective(trial):
         optimizer = eval(optimizer_name)(model.parameters(), **optim_params)
 
     lr = optim_params['lr']
-    bce_loss = train(trial, model, optimizer, train_loader, epochs, lr)
+    bce_loss = train(trial, model, optimizer, heldout_loader, epochs, lr)
     return bce_loss
 
 def print_stats(study):
