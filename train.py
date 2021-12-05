@@ -122,7 +122,7 @@ else:
     train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=batch_size, valid_bs=batch_size, valid_size=0.2, balanced=balance)
 
 # Base model InceptionV3 with global average pooling.
-model = torchvision.models.inception_v3(pretrained=False, progress=True, aux_logits=False)
+model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
 
 # Reset the layer with the same amount of neurons as labels.
 num_ftrs = model.fc.in_features
