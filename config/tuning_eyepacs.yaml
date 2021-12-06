@@ -3,7 +3,7 @@ trials: 3
 epoch: 10
 block_size: 20
 block_decay: .5
-optimizer: RMSprop
+optimizer: SGLD
 RMSprop:
   fixed:
     weight_decay: 4.e-5
@@ -20,7 +20,7 @@ SGLD:
   tune:
     lr:
       categorical:
-        choices: [5.e-5, 5.e-4, 5.e-3, 5.e-2, .5]
+        choices: [5.e-3, 5.e-2, .15, .5]
 dataset:
   batch_size: 128
   train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
