@@ -10,7 +10,6 @@ from torch.optim import RMSprop, SGD
 import torch.nn.functional as F
 import argparse
 import datetime
-import inspect
 import yaml
 import optuna
 
@@ -74,9 +73,6 @@ model = model.cuda()
 # use held-out training set for hyperparameter tuning
 def train(trial, model, optimizer, heldout_loader, epochs, lr):
     current_lr = lr
-    # check if optimizer.step has 'lr' param
-    step_args = inspect.getfullargspec(optimizer.step)
-    lr_param = 'lr' in step_args.args
 
     for epoch in range(1, epochs+1):
         model.train()
@@ -94,10 +90,8 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
             # do not perform custom lr setting for built-in optimizer
             if optimizer_name in ['SGD', 'RMSprop']:
                 optimizer.step()
-            elif blocksize > 0 and blockdecay > 0 and lr_param:
+            elif blocksize > 0 and blockdecay > 0:
                 optimizer.step(lr=current_lr)
-            else:
-                optimizer.step()
 
             epoch_loss += output.shape[0] * loss.item()
 
@@ -105,8 +99,6 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
         # update learning rate
         if blocksize > 0 and blockdecay > 0 and ((epoch) % blocksize) == 0:
             current_lr = current_lr * blockdecay
-            if not lr_param:
-                optimizer = lr_setter.update_lr(optimizer, current_lr)
 
         # epoch loss
         train_loss = epoch_loss / len(heldout_loader.dataset)
