@@ -54,10 +54,6 @@ valid_dataset = config['dataset']['valid_dataset']
 heldout_dataset = config['dataset']['heldout_dataset']
 optimizer_name = config['optimizer']
 
-accept_model = False
-if '_accept_model' in config[optimizer_name]:
-    accept_model = config[optimizer_name]['_accept_model']
-
 torch.cuda.set_device(0)
 torch.manual_seed(seed)
 random.seed(seed)
@@ -134,6 +130,9 @@ def objective(trial):
         optim_params[k] = suggests
         
 
+    accept_model = False
+    if '_accept_model' in fixed_params:
+        accept_model = fixed_params['_accept_model']
     if accept_model:
         optimizer = eval(optimizer_name)(model, **optim_params)
     else:
