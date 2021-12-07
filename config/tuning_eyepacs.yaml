@@ -1,9 +1,9 @@
 seed: 1
-trials: 4
+trials: 6
 epoch: 10
 block_size: 20
 block_decay: .5
-optimizer: pSGLD
+optimizer: ASGLD
 RMSprop:
   fixed:
     weight_decay: 4.e-5
@@ -33,6 +33,18 @@ pSGLD:
     lr:
       categorical:
         choices: [1.e-4, 1.e-3, 1.e-2, .1]
+ASGLD:
+  fixed:
+    momentum: .9
+    weight_decay: 5.e-4
+    eps: 1.e-6
+  tune:
+    lr:
+      categorical:
+        choices: [1.e-2, 1.e-1, 5.e-1]
+    noise:
+      categorical:
+        choices: [1.e-2, 1.e-1]
 dataset:
   batch_size: 128
   train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
