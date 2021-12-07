@@ -16,6 +16,10 @@ import optuna
 sys.path.insert(1, '../')
 from lib.dataset import load_predefined_heldout_train_test
 from sgld.sgld_optim import SGLD
+from sgld.psgld_optim import pSGLD
+from sgld.asgld_optim import ASGLD
+from sgld.ksgld_optim import KSGLD
+from sgld.eksgld_optim import EKSGLD
 import lib.lr_setter as lr_setter
 
 default_trial = 50
