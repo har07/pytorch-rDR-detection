@@ -83,7 +83,7 @@ EKSGLD:
       categorical:
         choices: [1.e-3, 1.e-2]
 dataset:
-  batch_size: 64
+  batch_size: 16
   train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/test
   heldout_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/heldout
