@@ -34,14 +34,10 @@ from torch.utils.tensorboard import SummaryWriter
 print(f"Numpy version: {np.__version__}")
 print(f"PyTorch version: {torch.__version__}")
 
-random.seed(432)
-
 # Various loading and saving constants.
-default_dataset_dir = "./data/fgadr/Seg-set-prep"
 default_save_model_path = "/content/model"
 default_save_summaries_dir = "/content/logs"
-default_save_operating_thresholds_path = "./tmp/op_pts.csv"
-default_yaml =  "config/train_psgld.yaml"
+default_yaml =  "config/train_eksgld.yaml"
 
 parser = argparse.ArgumentParser(
                     description="Trains and saves neural network for "
@@ -97,10 +93,9 @@ np.random.seed(seed)
 session_id_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 f = open(f'{save_summaries_dir}/train_logs_{session_id_prefix}.txt', 'w')
 
-blocksize = config['block_size']
-blockdecay = config['block_decay']
 optimizer_name = config['optimizer']
-num_epochs = config['epoch']
+num_epochs = config['max_epoch']
+limit_epoch = config['limit_epoch']
 
 _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
                                                         valid_dataset, batch_size=batch_size)
@@ -227,7 +222,7 @@ for epoch in range(num_epochs):
          # do not perform custom lr setting for built-in optimizer
         if optimizer_name in ['SGD', 'RMSprop']:
             optimizer.step()
-        elif blocksize > 0 and blockdecay > 0:
+        elif block_size > 0 and block_decay > 0:
             optimizer.step(lr=current_lr)
 
         epoch_loss += output.shape[0] * loss.item()
@@ -290,7 +285,12 @@ for epoch in range(num_epochs):
                 'lr': current_lr
             }, f"{save_model_path}/{session_id}_{epoch}.pt")
 
+    # If current training session reach limit epoch, stop training:
+    if limit_epoch > 0 and epoch >= limit_epoch:
+        break
+
  # save params so that we can resume training
+
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
