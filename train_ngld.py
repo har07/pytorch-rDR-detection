@@ -95,7 +95,7 @@ f = open(f'{save_summaries_dir}/train_logs_{session_id_prefix}.txt', 'w')
 
 optimizer_name = config['optimizer']
 num_epochs = config['max_epoch']
-limit_epoch = config['limit_epoch']
+limit_epoch = config['max_session_epoch']
 
 _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
                                                         valid_dataset, batch_size=batch_size)
