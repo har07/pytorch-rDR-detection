@@ -46,9 +46,6 @@ default_yaml =  "config/train_psgld.yaml"
 parser = argparse.ArgumentParser(
                     description="Trains and saves neural network for "
                                 "detection of diabetic retinopathy.")
-parser.add_argument("-d", "--dataset_dir",
-                    help="path to folder that contains the dataset",
-                    default=default_dataset_dir)
 parser.add_argument("-sm", "--save_model_path",
                     help="path to where graph model should be saved",
                     default=default_save_model_path)
@@ -58,58 +55,18 @@ parser.add_argument("-ss", "--save_summaries_dir",
 parser.add_argument("-v", "--verbose",
                     help="print log per batch instead of per epoch",
                     default=False)
-parser.add_argument("-b", "--balance",
-                    help="resample dataset to balance per class data",
-                    default=False)
-parser.add_argument("-td", "--train_dataset",
-                    help="path to folder that contains the train dataset")
-parser.add_argument("-vd", "--valid_dataset",
-                    help="path to folder that contains the validation dataset")
 parser.add_argument("-y", "--yaml",
                     help="yaml config file location",
                     default=default_yaml)
-parser.add_argument("-pw", "--positive_weight",
-                    help="weight factor for postive class",
-                    default=4.0)
-parser.add_argument("-me", "--max_epoch",
-                    help="number of max training epoch",
-                    default=200)
-parser.add_argument("-we", "--wait_epoch",
-                    help="number of epoch before terminating training if AUC doesn't increase",
-                    default=10)
 parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
-parser.add_argument("-sd", "--seed", default=432,
-                    help="Fix random seed for reproducability")
 
 args = parser.parse_args()
-dataset_dir = str(args.dataset_dir)
 save_model_path = str(args.save_model_path)
 save_summaries_dir = str(args.save_summaries_dir)
 is_verbose = bool(args.verbose)
-balance = bool(args.balance)
-train_dataset = str(args.train_dataset)
-valid_dataset = str(args.valid_dataset)
 yaml_path = str(args.yaml)
-positive_weight = float(args.positive_weight)
-max_epoch = int(args.max_epoch)
-wait_epochs = int(args.wait_epoch)
 checkpoint = str(args.checkpoint)
-seed = int(args.seed)
-
-torch.cuda.set_device(0)
-torch.manual_seed(seed)
-random.seed(seed)
-np.random.seed(seed)
-
-print("""
-Dataset images folder: {},
-Saving model and graph checkpoints at: {},
-Saving summaries at: {},
-Training images folder: {},
-Validation images folder: {},
-Optimizer config path: {}
-""".format(dataset_dir, save_model_path, save_summaries_dir, train_dataset, valid_dataset, yaml_path))
 
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
@@ -123,6 +80,15 @@ train_dataset = config['dataset']['train_dataset']
 valid_dataset = config['dataset']['valid_dataset']
 heldout_dataset = config['dataset']['heldout_dataset']
 
+print("""
+Saving model and graph checkpoints at: {},
+Saving summaries at: {},
+Training images folder: {},
+Validation images folder: {},
+Heldout images folder: {},
+Optimizer config path: {}
+""".format(save_model_path, save_summaries_dir, train_dataset, valid_dataset, heldout_dataset, yaml_path))
+
 torch.cuda.set_device(0)
 torch.manual_seed(seed)
 random.seed(seed)
@@ -134,11 +100,7 @@ f = open(f'{save_summaries_dir}/train_logs_{session_id_prefix}.txt', 'w')
 blocksize = config['block_size']
 blockdecay = config['block_decay']
 optimizer_name = config['optimizer']
-
-# Hyper-parameters for validation.
-min_epochs = config['min_epochs']
 num_epochs = config['epoch']
-min_delta_auc = 0.01
 
 _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
                                                         valid_dataset, batch_size=batch_size)
@@ -176,10 +138,10 @@ if accept_model:
 else:
     optimizer = eval(optimizer_name)(model.parameters(), **optim_params)
 
-writer = SummaryWriter(log_dir=f"runs/{session_id}")
-
-
-# writer = SummaryWriter()
+log_dir = f"{save_model_path}/runs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+writer = SummaryWriter(log_dir=log_dir)
 
 def print_training_status(epoch, num_epochs, batch_num, xent, i_step=None):
     def length(x): return len(str(x))
