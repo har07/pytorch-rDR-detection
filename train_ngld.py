@@ -11,11 +11,6 @@ import lib.dataset
 import lib.evaluation
 import lib.lr_setter as lr_setter
 # from lib.preprocess import rescale_min_1_to_1, rescale_0_to_1
-from lib.dataset import load_split_train_test, load_predefined_train_test
-from sgld.asgld_optim import ASGLD
-from sgld.psgld_optim import pSGLD
-from sgld.ksgld_optim import KSGLD
-from sgld.eksgld_optim import EKSGLD
 from torch.optim import RMSprop, SGD
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,6 +19,16 @@ import datetime
 import time
 import inspect
 import yaml
+
+sys.path.insert(1, '../')
+from lib.dataset import load_predefined_heldout_train_test
+from sgld.sgld_optim import SGLD
+from sgld.psgld_optim import pSGLD
+from sgld.asgld_optim import ASGLD
+from sgld.ksgld_optim import KSGLD
+from sgld.eksgld_optim import EKSGLD
+import lib.lr_setter as lr_setter
+
 from torch.utils.tensorboard import SummaryWriter
 
 print(f"Numpy version: {np.__version__}")
@@ -63,6 +68,19 @@ parser.add_argument("-vd", "--valid_dataset",
 parser.add_argument("-y", "--yaml",
                     help="yaml config file location",
                     default=default_yaml)
+parser.add_argument("-pw", "--positive_weight",
+                    help="weight factor for postive class",
+                    default=4.0)
+parser.add_argument("-me", "--max_epoch",
+                    help="number of max training epoch",
+                    default=200)
+parser.add_argument("-we", "--wait_epoch",
+                    help="number of epoch before terminating training if AUC doesn't increase",
+                    default=10)
+parser.add_argument("-c", "--checkpoint", default="",
+                    help="Checkpoint file")
+parser.add_argument("-sd", "--seed", default=432,
+                    help="Fix random seed for reproducability")
 
 args = parser.parse_args()
 dataset_dir = str(args.dataset_dir)
@@ -73,6 +91,16 @@ balance = bool(args.balance)
 train_dataset = str(args.train_dataset)
 valid_dataset = str(args.valid_dataset)
 yaml_path = str(args.yaml)
+positive_weight = float(args.positive_weight)
+max_epoch = int(args.max_epoch)
+wait_epochs = int(args.wait_epoch)
+checkpoint = str(args.checkpoint)
+seed = int(args.seed)
+
+torch.cuda.set_device(0)
+torch.manual_seed(seed)
+random.seed(seed)
+np.random.seed(seed)
 
 print("""
 Dataset images folder: {},
@@ -90,9 +118,10 @@ seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
-dataset_params = config['dataset']
-train_batch = dataset_params['train_batch']
-test_batch = dataset_params['test_batch']
+batch_size = config['dataset']['batch_size']
+train_dataset = config['dataset']['train_dataset']
+valid_dataset = config['dataset']['valid_dataset']
+heldout_dataset = config['dataset']['heldout_dataset']
 
 torch.cuda.set_device(0)
 torch.manual_seed(seed)
@@ -101,19 +130,18 @@ np.random.seed(seed)
 
 session_id_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 f = open(f'{save_summaries_dir}/train_logs_{session_id_prefix}.txt', 'w')
+
+blocksize = config['block_size']
+blockdecay = config['block_decay']
 optimizer_name = config['optimizer']
 
 # Hyper-parameters for validation.
 min_epochs = config['min_epochs']
 num_epochs = config['epoch']
-wait_epochs = config['wait_epoch']
 min_delta_auc = 0.01
 
-
-if train_dataset != 'None' and valid_dataset != 'None':
-    train_dataset, val_dataset = load_predefined_train_test(train_dataset, valid_dataset, bs=train_batch, valid_bs=test_batch)
-else:
-    train_dataset, val_dataset = load_split_train_test(dataset_dir, bs=train_batch, valid_bs=test_batch, valid_size=0.2, balanced=balance)
+_, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
+                                                        valid_dataset, batch_size=batch_size)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=False, progress=True, aux_logits=False)
@@ -150,9 +178,6 @@ else:
 
 writer = SummaryWriter(log_dir=f"runs/{session_id}")
 
-# Train for the specified amount of epochs.
-latest_peak_auc = 0
-waited_epochs = 0
 
 # writer = SummaryWriter()
 
@@ -207,6 +232,15 @@ val_accuracy=0
 start_epoch = 1
 durations = []
 
+# Load checkpoint if provided
+if checkpoint != "":
+    chk = torch.load(checkpoint)
+    start_epoch = chk['epoch'] + 1
+    durations = chk['durations']
+    step = chk['step']
+    optimizer.load_state_dict(chk['optimizer_state_dict'])
+    model.load_state_dict(chk['model_state_dict'])
+
 for epoch in range(num_epochs):
     t0 = time.time()
     model.train()
@@ -215,6 +249,7 @@ for epoch in range(num_epochs):
     batch_num = 0
     accum_target = []
     for data, target in train_dataset:
+        step += 1
         data = data.cuda()
         target = target.cuda()
         optimizer.zero_grad()
@@ -227,12 +262,11 @@ for epoch in range(num_epochs):
         loss.backward()    # calc gradients
         
         # exception for SGD: do not perform lr decay
-        if optimizer_name == 'optim.SGD':
+         # do not perform custom lr setting for built-in optimizer
+        if optimizer_name in ['SGD', 'RMSprop']:
             optimizer.step()
-        elif block_size > 0 and block_decay > 0 and lr_param:
+        elif blocksize > 0 and blockdecay > 0:
             optimizer.step(lr=current_lr)
-        else:
-            optimizer.step()
 
         epoch_loss += output.shape[0] * loss.item()
 
@@ -294,34 +328,13 @@ for epoch in range(num_epochs):
                 'lr': current_lr
             }, f"{save_model_path}/{session_id}_{epoch}.pt")
 
-    if val_auc < latest_peak_auc + min_delta_auc:
-        # Stop early if peak of val auc has been reached.
-        # If it is lower than the previous auc value, wait up to `wait_epochs`
-        #  to see if it does not increase again.
-        if epoch < min_epochs:
-            continue
-
-        if wait_epochs == waited_epochs:
-            print("Stopped early at epoch {0} with saved peak auc {1:10.8}"
-                .format(epoch+1, latest_peak_auc))
-            break
-
-        waited_epochs += 1
-    else:
-        latest_peak_auc = val_auc
-        print(f"New peak auc reached: {val_auc:10.8}")
-
-        # Save the model weights.
-        torch.save({
-            'model_state_dict': model.state_dict(),
-            # 'optimizer_state_dict': optimizer.state_dict(),
-            'epoch': epoch,
-            'steps': step,
-            'lr': current_lr
-        }, f"{save_model_path}/{session_id}_best.pt")
-
-        # Reset waited epochs.
-        waited_epochs = 0
+ # save params so that we can resume training
+torch.save({
+    'model_state_dict': model.state_dict(),
+    'optimizer_state_dict': optimizer.state_dict(),
+    'epoch': epoch,
+    'durations': durations,
+}, f"{save_model_path}/{session_id}_chk.pt")
 
 writer.flush()
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}")
