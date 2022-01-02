@@ -96,6 +96,8 @@ f = open(f'{save_summaries_dir}/train_logs_{session_id_prefix}.txt', 'w')
 optimizer_name = config['optimizer']
 num_epochs = config['max_epoch']
 limit_epoch = config['max_session_epoch']
+if limit_epoch == 0:
+    limit_epoch = num_epochs
 
 _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
                                                         valid_dataset, batch_size=batch_size)
@@ -198,7 +200,7 @@ if checkpoint != "":
     optimizer.load_state_dict(chk['optimizer_state_dict'])
     model.load_state_dict(chk['model_state_dict'])
 
-for epoch in range(num_epochs):
+for epoch in range(start_epoch, limit_epoch+1):
     t0 = time.time()
     model.train()
     epoch_loss = 0.0
