@@ -196,7 +196,7 @@ if checkpoint != "":
     chk = torch.load(checkpoint)
     start_epoch = chk['epoch'] + 1
     durations = chk['durations']
-    step = chk['steps']
+    # step = chk['steps']
     optimizer.load_state_dict(chk['optimizer_state_dict'])
     model.load_state_dict(chk['model_state_dict'])
 
@@ -297,6 +297,7 @@ torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
     'epoch': epoch,
+    'steps': step,
     'durations': durations,
 }, f"{save_model_path}/{session_id}_chk.pt")
 
