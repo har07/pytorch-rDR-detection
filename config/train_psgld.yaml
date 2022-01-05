@@ -14,6 +14,7 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
+  positive_weight: 1.
   batch_size: 32
   train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/test

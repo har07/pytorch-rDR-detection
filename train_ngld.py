@@ -71,6 +71,7 @@ seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
+positive_weight = config['dataset']['positive_weight']
 batch_size = config['dataset']['batch_size']
 train_dataset = config['dataset']['train_dataset']
 valid_dataset = config['dataset']['valid_dataset']
@@ -217,7 +218,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.float()
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
-        loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([4.0]).cuda())
+        loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([positive_weight]).cuda())
         loss.backward()    # calc gradients
         
         # exception for SGD: do not perform lr decay
