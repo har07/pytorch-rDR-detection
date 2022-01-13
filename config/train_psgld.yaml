@@ -1,6 +1,6 @@
 seed: 1
 max_epoch: 100
-max_session_epoch: 50
+max_session_epoch: 30
 block_size: 20
 block_decay: .5
 # model: resnet.ResNet18
