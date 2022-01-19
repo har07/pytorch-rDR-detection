@@ -1,9 +1,8 @@
 seed: 1
 max_epoch: 200
-max_session_epoch: 90
+max_session_epoch: 20
 block_size: 20
 block_decay: .5
-# model: resnet.ResNet18
 optimizer: pSGLD
 pSGLD:
   lr: 1.e-4
@@ -14,7 +13,9 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
-  positive_weight: 3.
+  positive_weight: 1.
+  oversampling: True
+  sample_count: 54456
   batch_size: 32
   train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/test

@@ -126,7 +126,7 @@ def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=F
     testloader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=valid_bs)
     return trainloader, testloader
 
-def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size=128):
+def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size=128, weighted_sampler=False, count_samples=0):
     train_transforms = transforms.Compose(
         [
             transforms.RandomHorizontalFlip(),
@@ -144,7 +144,18 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     heldout_data = datasets.ImageFolder(heldoutdir, transform=train_transforms)
     train_data = datasets.ImageFolder(traindir, transform=train_transforms)
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
-    trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    trainloader = None
+    if weighted_sampler:
+        target = train_data.targets
+        class_sample_count = np.unique(target, return_counts=True)[1]
+        weight = 1. / class_sample_count
+        samples_weight = weight[target]
+        samples_weight = torch.from_numpy(samples_weight)
+        sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_samples)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, sampler=sampler)
+    else:
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
     heldoutoader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
     return heldoutoader, testloader, trainloader

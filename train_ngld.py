@@ -73,6 +73,7 @@ block_decay = config['block_decay']
 
 positive_weight = config['dataset']['positive_weight']
 batch_size = config['dataset']['batch_size']
+oversampling = config['dataset']['oversampling']
 train_dataset = config['dataset']['train_dataset']
 valid_dataset = config['dataset']['valid_dataset']
 heldout_dataset = config['dataset']['heldout_dataset']
@@ -100,7 +101,15 @@ limit_epoch = config['max_session_epoch']
 if limit_epoch == 0:
     limit_epoch = num_epochs
 
-_, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
+train_dataset = None
+val_dataset = None
+if oversampling:
+    sample_count = config['dataset']['sample_count']
+    _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
+                                                        valid_dataset, batch_size=batch_size,
+                                                        weighted_sampler=True, count_samples=sample_count)
+else:
+    _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
                                                         valid_dataset, batch_size=batch_size)
 
 # Base model InceptionV3 with global average pooling.
