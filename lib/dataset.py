@@ -146,6 +146,7 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
     trainloader = None
     if weighted_sampler:
+        # ref: https://discuss.pytorch.org/t/how-to-implement-oversampling-in-cifar-10/16964/2
         target = train_data.targets
         class_sample_count = np.unique(target, return_counts=True)[1]
         weight = 1. / class_sample_count
@@ -157,5 +158,5 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
         trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
 
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
-    heldoutoader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
-    return heldoutoader, testloader, trainloader
+    heldoutloader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
+    return heldoutloader, testloader, trainloader

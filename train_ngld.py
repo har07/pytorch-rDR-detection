@@ -74,9 +74,9 @@ block_decay = config['block_decay']
 positive_weight = config['dataset']['positive_weight']
 batch_size = config['dataset']['batch_size']
 oversampling = config['dataset']['oversampling']
-train_dataset = config['dataset']['train_dataset']
-valid_dataset = config['dataset']['valid_dataset']
-heldout_dataset = config['dataset']['heldout_dataset']
+train_datadir = config['dataset']['train_dataset']
+valid_datadir = config['dataset']['valid_dataset']
+heldout_datadir = config['dataset']['heldout_dataset']
 
 print("""
 Saving model and graph checkpoints at: {},
@@ -85,7 +85,7 @@ Training images folder: {},
 Validation images folder: {},
 Heldout images folder: {},
 Optimizer config path: {}
-""".format(save_model_path, save_summaries_dir, train_dataset, valid_dataset, heldout_dataset, yaml_path))
+""".format(save_model_path, save_summaries_dir, train_datadir, valid_datadir, heldout_datadir, yaml_path))
 
 torch.cuda.set_device(0)
 torch.manual_seed(seed)
@@ -105,12 +105,12 @@ train_dataset = None
 val_dataset = None
 if oversampling:
     sample_count = config['dataset']['sample_count']
-    _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
-                                                        valid_dataset, batch_size=batch_size,
+    _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
+                                                        train_datadir, batch_size=batch_size,
                                                         weighted_sampler=True, count_samples=sample_count)
 else:
-    _, train_dataset, val_dataset = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
-                                                        valid_dataset, batch_size=batch_size)
+    _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
+                                                        train_datadir, batch_size=batch_size)
 
 # Base model InceptionV3 with global average pooling.
 model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
