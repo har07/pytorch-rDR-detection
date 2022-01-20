@@ -153,7 +153,7 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
         samples_weight = weight[target]
         samples_weight = torch.from_numpy(samples_weight)
         sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_samples)
-        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, sampler=sampler)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sampler=sampler)
     else:
         trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
 
