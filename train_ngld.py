@@ -103,12 +103,14 @@ if limit_epoch == 0:
 
 train_dataset = None
 val_dataset = None
+sample_count = 0
 if oversampling:
     sample_count = config['dataset']['sample_count']
     _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
                                                         train_datadir, batch_size=batch_size,
                                                         weighted_sampler=True, count_samples=sample_count)
 else:
+    sample_count = len(train_dataset.dataset)
     _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
                                                         train_datadir, batch_size=batch_size)
 
@@ -274,8 +276,8 @@ for epoch in range(start_epoch, limit_epoch+1):
     val_sensitivity = tp/(tp + fn)
     val_specificity = tn/(tn + fp)
     val_auc = auc
-    train_loss = epoch_loss / len(train_dataset.dataset)
-    train_acc = epoch_acc/ len(train_dataset.dataset)
+    train_loss = epoch_loss / sample_count
+    train_acc = epoch_acc/ sample_count
 
     print(f'Epoch: {epoch}\tCount Data: {val_itmes}\tTrain Sec: {elapsed:0.3f}' + 
             f'\tTN: {tn}\tFP: {fp}\tFN: {fn}\tTP:{tp}')
