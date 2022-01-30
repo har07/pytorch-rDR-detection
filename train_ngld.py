@@ -67,6 +67,7 @@ checkpoint = str(args.checkpoint)
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
 
+model_type = config['model']
 seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
@@ -115,7 +116,14 @@ else:
                                                         train_datadir, batch_size=batch_size)
 
 # Base model InceptionV3 with global average pooling.
-model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
+model = None
+if model_type == 'resnet':
+    model = torchvision.models.resnet101(pretrained=True, progress=True)
+elif model_type == 'densenet':
+    model = torchvision.models.densenet121(pretrained=True, progress=True)
+else:
+    model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
+
 
 # Reset the layer with the same amount of neurons as labels.
 num_ftrs = model.fc.in_features
