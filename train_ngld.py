@@ -127,7 +127,10 @@ else:
 
 # Reset the layer with the same amount of neurons as labels.
 num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 1)
+if model_type == 'densenet':
+    model.classifier = nn.Linear(num_ftrs, 1)
+else:
+    model.fc = nn.Linear(num_ftrs, 1)
 model = model.cuda()
 
 # Define optimizer.
