@@ -1,10 +1,10 @@
 seed: 1
 max_epoch: 200
-max_session_epoch: 35
+max_session_epoch: 15
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
-model: densenet # inception | resnet | densenet
+model: inception # inception | resnet | densenet
 pSGLD:
   lr: 1.e-4
   train_size: 54456
