@@ -293,7 +293,7 @@ for epoch in range(start_epoch, limit_epoch+1):
 
     print(f'Epoch: {epoch}\tCount Data: {val_itmes}\tTrain Sec: {elapsed:0.3f}' + 
             f'\tTN: {tn}\tFP: {fp}\tFN: {fn}\tTP:{tp}')
-    print(f'TLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}\tSn: {val_sensitivity:0.3f}' + 
+    print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}\tSn: {val_sensitivity:0.3f}' + 
             f'\tSp: {val_specificity:0.3f}\tAUC: {val_auc:10.8}\tBrier: {brier:8.6}')
 
     write_board(epoch, train_loss, train_acc, val_accuracy, val_sensitivity, val_specificity, val_auc, brier)
