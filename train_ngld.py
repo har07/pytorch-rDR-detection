@@ -19,6 +19,7 @@ import datetime
 import time
 import inspect
 import yaml
+import timm
 
 sys.path.insert(1, '../')
 from lib.dataset import load_predefined_heldout_train_test
@@ -120,19 +121,17 @@ model = None
 if model_type == 'resnet':
     model = torchvision.models.resnet101(pretrained=True, progress=True)
 elif model_type == 'densenet':
-    model = torchvision.models.densenet121(pretrained=True, progress=True)
+    model = timm.create_model('densenet121', pretrained=True, num_classes=1)
 else:
-    model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
+    model = timm.create_model('inception_v4', pretrained=True, num_classes=1)
 
 
 # Reset the layer with the same amount of neurons as labels.
 
-if model_type == 'densenet':
-    num_ftrs = model.classifier.in_features
-    model.classifier = nn.Linear(num_ftrs, 1)
-else:
+if model_type == 'resnet':
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 1)
+
 model = model.cuda()
 
 # Define optimizer.
