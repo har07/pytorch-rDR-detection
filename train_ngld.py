@@ -73,7 +73,7 @@ seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
-positive_weight = config['dataset']['positive_weight']
+weights = config['dataset']['weights']
 batch_size = config['dataset']['batch_size']
 oversampling = config['dataset']['oversampling']
 train_datadir = config['dataset']['train_dataset']
@@ -121,9 +121,9 @@ model = None
 if model_type == 'resnet':
     model = torchvision.models.resnet101(pretrained=True, progress=True)
 elif model_type == 'densenet':
-    model = timm.create_model('densenet121', pretrained=True, num_classes=1)
+    model = timm.create_model('densenet121', pretrained=True, num_classes=3)
 else:
-    model = timm.create_model('inception_v4', pretrained=True, num_classes=1)
+    model = timm.create_model('inception_v4', pretrained=True, num_classes=3)
 
 
 # Reset the layer with the same amount of neurons as labels.
@@ -241,7 +241,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.float()
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
-        loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([positive_weight]).cuda())
+        loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         
         # exception for SGD: do not perform lr decay

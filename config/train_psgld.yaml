@@ -1,22 +1,22 @@
 seed: 1
 max_epoch: 200
-max_session_epoch: 20
+max_session_epoch: 10
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
 model: inception # inception | resnet | densenet
 pSGLD:
   lr: 1.e-4
-  train_size: 54456
+  train_size: 60000
   alpha: .95
   eps: 5.e-5
   num_burn_in_steps: 300
   centered: False
   addnoise: True
 dataset:
-  positive_weight: 1.
+  weights: [1., 1., 2.]
   oversampling: True
-  sample_count: 54456
+  sample_count: 60000
   batch_size: 32
   train_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs_balanced/test
