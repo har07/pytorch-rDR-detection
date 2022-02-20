@@ -1,7 +1,5 @@
 import torch
 import numpy as np
-import auc_mu
-from sklearn.metrics import confusion_matrix, roc_auc_score, brier_score_loss
 # from pytorch_lightning.metrics.functional import confusion_matrix
 
 def brier_multi(targets, probs):
