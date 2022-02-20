@@ -273,7 +273,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         print('training composition: 0={}, 1={}'.format(class_0, len(accum_target)-class_0))
 
     # Perform validation.
-    val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset, verbose=eval_verbose)
+    val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset)
     train_loss = np.mean(loss.item())
     train_acc = np.mean(accuracy)
 
