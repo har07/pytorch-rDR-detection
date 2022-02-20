@@ -185,20 +185,15 @@ def write_csv(filename, header=False, data=[]):
     with open(save_summaries_dir + '/' + filename, mode) as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         if header:
-            writer.writerow(['epoch', 'count_data', 'train_seconds', 'tn', 'fp', 'fn', 'tp', 
-                'train_loss', 'train_accuracy', 'accuracy', 
-                'sensitivity', 'specificity', 'auc', 'brier'])
+            writer.writerow(['epoch', 'train_seconds',
+                'train_loss', 'train_accuracy', 'accuracy'])
         else:
             writer.writerow(["{}".format(x) for x in data[:6]] + ["{:0.4f}".format(x) for x in data[6:]])
 
-def write_board(epoch, tloss, tacc, acc, sn, sp, auc, brier):
+def write_board(epoch, tloss, tacc, acc):
     writer.add_scalar("Train Loss/train", tloss, epoch)
     writer.add_scalar("Train Accuracy/train", tacc, epoch)
     writer.add_scalar("Val Accuracy/train", acc, epoch)
-    writer.add_scalar("Sensitivity/train", sn, epoch)
-    writer.add_scalar("Specificity/train", sp, epoch)
-    writer.add_scalar("AUC/train", auc, epoch)
-    writer.add_scalar("Brier/train", brier, epoch)
 
 session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
@@ -237,8 +232,6 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.cuda()
         optimizer.zero_grad()
         output = model(data)
-        target = target.unsqueeze(1)
-        target = target.float()
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
@@ -281,25 +274,16 @@ for epoch in range(start_epoch, limit_epoch+1):
         print('training composition: 0={}, 1={}'.format(class_0, len(accum_target)-class_0))
 
     # Perform validation.
-    cf, auc, brier = lib.evaluation.evaluate(model, val_dataset, verbose=eval_verbose)
-    tn, fp, fn, tp = cf.ravel()
-    val_itmes = tn+fp+fn+tp
-    val_accuracy = ((tn + tp)/val_itmes)*100
-    val_sensitivity = tp/(tp + fn)
-    val_specificity = tn/(tn + fp)
-    val_auc = auc
+    val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset, verbose=eval_verbose)
     train_loss = epoch_loss / sample_count
     train_acc = epoch_acc/ sample_count
 
-    print(f'Epoch: {epoch}\tCount Data: {val_itmes}\tTrain Sec: {elapsed:0.3f}' + 
-            f'\tTN: {tn}\tFP: {fp}\tFN: {fn}\tTP:{tp}')
-    print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}\tSn: {val_sensitivity:0.3f}' + 
-            f'\tSp: {val_specificity:0.3f}\tAUC: {val_auc:10.8}\tBrier: {brier:8.6}')
+    print(f'Epoch: {epoch}\tTrain Sec: {elapsed:0.3f}')
+    print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}')
 
-    write_board(epoch, train_loss, train_acc, val_accuracy, val_sensitivity, val_specificity, val_auc, brier)
-    write_csv(session_id+".csv", data=[epoch, val_itmes, elapsed, tn, fp, fn, tp, train_loss, 
-                                        train_acc, val_accuracy, val_sensitivity, 
-                                        val_specificity, val_auc, brier])
+    write_board(epoch, train_loss, train_acc, val_accuracy)
+    write_csv(session_id+".csv", data=[epoch, elapsed, train_loss, 
+                                        train_acc, val_accuracy])
 
     # Save the model weights max for the last 20 epochs
     if num_epochs - epoch < 20:
