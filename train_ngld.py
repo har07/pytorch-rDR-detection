@@ -246,9 +246,8 @@ for epoch in range(start_epoch, limit_epoch+1):
 
         epoch_loss += output.shape[0] * loss.item()
 
-        prediction = torch.round(torch.sigmoid(output))
+        prediction = output.data.max(1)[1]   # first column has actual prob.
         accuracy = np.mean(prediction.eq(target.data).cpu().numpy())*100
-        epoch_acc += output.shape[0] *accuracy
 
         # Print a nice training status. 
         if is_verbose:
@@ -275,8 +274,8 @@ for epoch in range(start_epoch, limit_epoch+1):
 
     # Perform validation.
     val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset, verbose=eval_verbose)
-    train_loss = epoch_loss / sample_count
-    train_acc = epoch_acc/ sample_count
+    train_loss = np.mean(loss.item())
+    train_acc = np.mean(accuracy)
 
     print(f'Epoch: {epoch}\tTrain Sec: {elapsed:0.3f}')
     print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}')
