@@ -14,7 +14,7 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
-  weights: [1., 1., 2.]
+  weights: [1., 1., 1.]
   oversampling: True
   sample_count: 60000
   batch_size: 32
