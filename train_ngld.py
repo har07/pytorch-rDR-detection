@@ -232,6 +232,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.cuda()
         optimizer.zero_grad()
         output = model(data)
+        output = F.log_softmax(output, dim=1)
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
