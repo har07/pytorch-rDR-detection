@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import torch.nn.functional as F
 # from pytorch_lightning.metrics.functional import confusion_matrix
 
 def brier_multi(targets, probs):
@@ -15,6 +16,7 @@ def evaluate(model, test_loader):
             data = data.cuda()
             target = target.cuda()
             output = model(data)
+            output = F.log_softmax(output, dim=1)
             prediction = output.data.max(1)[1]   # first column has actual prob.
             val_accuracy = np.mean(prediction.eq(target.data).cpu().numpy())*100
             outputs.append(output)
