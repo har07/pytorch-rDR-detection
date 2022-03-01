@@ -23,6 +23,7 @@ import timm
 
 sys.path.insert(1, '../')
 from lib.dataset import load_predefined_heldout_train_test
+from lib.weights import weight_for_batch
 from sgld.sgld_optim import SGLD
 from sgld.psgld_optim import pSGLD
 from sgld.asgld_optim import ASGLD
@@ -73,12 +74,14 @@ seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
-weights = config['dataset']['weights']
 batch_size = config['dataset']['batch_size']
-oversampling = config['dataset']['oversampling']
 train_datadir = config['dataset']['train_dataset']
 valid_datadir = config['dataset']['valid_dataset']
 heldout_datadir = config['dataset']['heldout_dataset']
+
+class_weight = config['class_weight']['method']
+samples_per_class = config['class_weight']['samples_per_class']
+class_weight_beta = config['class_weight']['beta']
 
 print("""
 Saving model and graph checkpoints at: {},
@@ -105,16 +108,10 @@ if limit_epoch == 0:
 
 train_dataset = None
 val_dataset = None
-sample_count = 0
-if oversampling:
-    sample_count = config['dataset']['sample_count']
-    _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
-                                                        train_datadir, batch_size=batch_size,
-                                                        weighted_sampler=True, count_samples=sample_count)
-else:
-    sample_count = len(train_dataset.dataset)
-    _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
-                                                        train_datadir, batch_size=batch_size)
+
+sample_count = len(train_dataset.dataset)
+_, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
+                                                    train_datadir, batch_size=batch_size)
 
 # Base model InceptionV3 with global average pooling.
 model = None
@@ -235,6 +232,8 @@ for epoch in range(start_epoch, limit_epoch+1):
         output = F.log_softmax(output, dim=1)
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
+        
+        weights = weight_for_batch(class_weight, len(samples_per_class), samples_per_class, target, class_weight_beta)
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         

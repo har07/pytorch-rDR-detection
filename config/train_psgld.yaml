@@ -14,10 +14,11 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
-  weights: [1., 1., 1.]
-  oversampling: False
-  sample_count: 60000
   batch_size: 32
   train_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/test
   heldout_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/heldout
+class_weight:
+  samples_per_class: [31699,10187,831]
+  method: ins # ins | isns | ens
+  beta: 0 # only valid for ens
