@@ -232,7 +232,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
         
-        weights = weight_for_batch(class_weight, len(samples_per_class), samples_per_class, target, class_weight_beta)
+        weights = weight_for_batch(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         

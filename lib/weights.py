@@ -13,7 +13,7 @@ def weight_ess(count_classes, beta, count_samples):
     weight = weight / np.sum(weight) * count_classes
     return weight
 
-def weight_for_batch(method, count_classes, samples_per_class, batch_labels, beta = None):
+def weight_for_batch(method, count_classes, samples_per_class, beta = None):
     if method == 'ens':
         weight = weight_ess(count_classes, beta, samples_per_class)
     elif method == 'ins':
@@ -22,15 +22,7 @@ def weight_for_batch(method, count_classes, samples_per_class, batch_labels, bet
         weight = weight_inv_of_samples(count_classes, samples_per_class, 0.5)
     else:
         return None
-
-    batch_labels = F.one_hot(batch_labels, num_classes=3)
-    batch_labels = batch_labels.to('cpu').numpy()
-    weight = torch.tensor(weight).float()
-    weight = weight.unsqueeze(0)
-    weight = torch.tensor(np.array(weight.repeat(batch_labels.shape[0],1) * batch_labels))
-    weight = weight.sum(1)
-    weight = weight.unsqueeze(1)
-    weight = weight.repeat(1, count_classes)
+        
     return weight
 
 # result:
