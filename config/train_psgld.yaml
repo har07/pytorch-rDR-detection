@@ -1,6 +1,6 @@
 seed: 1
 max_epoch: 45
-max_session_epoch: 5
+max_session_epoch: 15
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
@@ -21,4 +21,4 @@ dataset:
 class_weight:
   samples_per_class: [31699,10187,831]
   method: ens # ins | isns | ens
-  beta: 0.9999 # only valid for ens
+  beta: 0.999 # only valid for ens
