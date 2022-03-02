@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 def weight_inv_of_samples(count_classes, count_samples, power=1):
     weight = 1.0 / np.array(np.power(count_samples, power))
@@ -22,6 +23,7 @@ def weight_for_batch(method, count_classes, samples_per_class, batch_labels, bet
     else:
         return None
 
+    batch_labels = F.one_hot(batch_labels, num_classes=3)
     batch_labels = batch_labels.to('cpu').numpy()
     weight = torch.tensor(weight).float()
     weight = weight.unsqueeze(0)
