@@ -20,5 +20,5 @@ dataset:
   heldout_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/heldout
 class_weight:
   samples_per_class: [31699,10187,831]
-  method: ins # ins | isns | ens
-  beta: 0 # only valid for ens
+  method: ens # ins | isns | ens
+  beta: 0.99 # only valid for ens
