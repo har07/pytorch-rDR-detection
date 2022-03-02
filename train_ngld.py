@@ -109,7 +109,6 @@ if limit_epoch == 0:
 train_dataset = None
 val_dataset = None
 
-sample_count = len(train_dataset.dataset)
 _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
                                                     train_datadir, batch_size=batch_size)
 
