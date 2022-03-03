@@ -109,12 +109,12 @@ for optimizer in optimizers:
                 # https://pytorch.org/vision/stable/transforms.html#functional-transforms
                 data = TF.rotate(data, rotate)
 
-            mean_pred_soft = torch.zeros(len(data), 10).cuda()
-            mean_log_soft = torch.zeros(len(data), 10).cuda()
+            mean_pred_soft = torch.zeros(len(data), 3).cuda()
+            mean_log_soft = torch.zeros(len(data), 3).cuda()
             for model in models:
                 logits = model(data)
-                prob_vecs = F.softmax(logits,dim=1) # (200, 10); (batch_size, num_class)
-                mean_pred_soft += prob_vecs/float(nmodel) # (200, 10)
+                prob_vecs = F.softmax(logits,dim=1) # (32, 3); (batch_size, num_class)
+                mean_pred_soft += prob_vecs/float(nmodel) # (32, 3)
                 mean_log_soft += F.log_softmax(logits,dim=1)/float(nmodel)
 
             entropy_list.append(Categorical(probs = mean_pred_soft).entropy())
