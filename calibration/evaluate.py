@@ -57,7 +57,7 @@ random.seed(seed)
 np.random.seed(seed)
 
 session_id_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-f = open(f'/kaggle/working/plots/evaluation_{session_id_prefix}.txt', 'w')
+f = open(f'/kaggle/working/plots/evaluation_{session_id_prefix}.txt', 'w+')
 print(f'dataset: {dataset}', file=f)
 print(f'path: {dir_path}', file=f)
 print(f'rotated: {rotate}', file=f)
