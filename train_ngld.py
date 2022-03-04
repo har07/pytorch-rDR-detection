@@ -205,6 +205,7 @@ val_accuracy=0
 
 start_epoch = 1
 durations = []
+top_acc = []
 
 # Load checkpoint if provided
 if checkpoint != "":
@@ -283,8 +284,20 @@ for epoch in range(start_epoch, limit_epoch+1):
     write_csv(session_id+".csv", data=[epoch, elapsed, train_loss, 
                                         train_acc, val_accuracy])
 
+    save = False
+
+    # Save top 10 model accuracy
+    if len(top_acc) < 10:
+        save = True
+        top_acc.append(val_accuracy)
+        top_acc.sort()
+    elif val_accuracy > top_acc[0]:
+        save = True
+        top_acc[0] = val_accuracy
+        top_acc.sort()
+    
     # Save the model weights max for the last 20 epochs
-    if num_epochs - epoch < 20:
+    if save or num_epochs - epoch < 20:
         torch.save({
                 'model_state_dict': model.state_dict(),
                 # 'optimizer_state_dict': optimizer.state_dict(),
