@@ -36,6 +36,8 @@ parser.add_argument("-o", "--optimizers", default="",
                     help="optimizer")
 parser.add_argument("-n", "--nmodel", default=10,
                     help="number of models")
+parser.add_argument("-max", "--model_max_idx", default=100,
+                    help="number of models")
 parser.add_argument("-ds", "--dataset", default='eyepacs',
                     help="dataset")
 parser.add_argument("-r", "--rotate", default=0,
@@ -47,7 +49,7 @@ dataset = str(args.dataset)
 optimizers = str(args.optimizers)
 nmodel = int(args.nmodel)
 rotate = int(args.rotate)
-nmodel_max = 35
+nmodel_max = int(args.model_max_idx)
 
 optimizers = optimizers.split(",")
 
