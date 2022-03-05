@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 95
-max_session_epoch: 85
+max_epoch: 100
+max_session_epoch: 100
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
