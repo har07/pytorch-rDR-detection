@@ -11,7 +11,9 @@ import torch.nn.functional as F
 import argparse
 import datetime
 import yaml
+import inspect
 import optuna
+import timm
 
 sys.path.insert(1, '../')
 from lib.dataset import load_predefined_heldout_train_test
@@ -21,10 +23,12 @@ from sgld.asgld_optim import ASGLD
 from sgld.ksgld_optim import KSGLD
 from sgld.eksgld_optim import EKSGLD
 import lib.lr_setter as lr_setter
+from lib.weights import get_class_weights
+from lib.evaluation import evaluate_nll
 
 default_trial = 50
 default_epochs = 10
-default_batch_size = 128
+default_batch_size = 32
 default_seed = 0
 default_yaml = "../tuning_eyepacs.yaml"
 
@@ -46,34 +50,39 @@ else:
 seed = config['seed']
 epochs = config['epoch']
 trials = config['trials']
-blocksize = config['block_size']
-blockdecay = config['block_decay']
+block_size = config['block_size']
+block_decay = config['block_decay']
 batch_size = config['dataset']['batch_size']
-train_dataset = config['dataset']['train_dataset']
-valid_dataset = config['dataset']['valid_dataset']
-heldout_dataset = config['dataset']['heldout_dataset']
+train_datadir = config['dataset']['train_dataset']
+valid_datadir = config['dataset']['valid_dataset']
+heldout_datadir = config['dataset']['heldout_dataset']
 optimizer_name = config['optimizer']
+
+class_weight = config['class_weight']['method']
+samples_per_class = config['class_weight']['samples_per_class']
+class_weight_beta = config['class_weight']['beta']
 
 torch.cuda.set_device(0)
 torch.manual_seed(seed)
 random.seed(seed)
 np.random.seed(seed)
 
-heldout_loader, _, _ = load_predefined_heldout_train_test(heldout_dataset, train_dataset, \
-                                                        valid_dataset, batch_size=batch_size)
+heldout_loader, val_dataset, _ = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
+                                                    train_datadir, batch_size=batch_size)
 
-# Base model InceptionV3 with global average pooling.
-model = torchvision.models.inception_v3(pretrained=True, progress=True, aux_logits=False)
-
-# Reset the layer with the same amount of neurons as labels.
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 1)
+# Base model InceptionV4
+model = timm.create_model('inception_v4', pretrained=True, num_classes=3)
 model = model.cuda()
 
 # use held-out training set for hyperparameter tuning
 def train(trial, model, optimizer, heldout_loader, epochs, lr):
     current_lr = lr
 
+    # check if optimizer.step has 'lr' param
+    step_args = inspect.signature(optimizer.step)
+    lr_param = 'lr' in step_args.parameters
+
+    weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
     for epoch in range(1, epochs+1):
         model.train()
         epoch_loss = 0.0
@@ -82,32 +91,34 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
             target = target.cuda()
             optimizer.zero_grad()
             output = model(data)
-            target = target.unsqueeze(1)
-            target = target.float()
-            loss = F.binary_cross_entropy_with_logits(output, target, pos_weight=torch.Tensor([1.0]).cuda())
+            output = F.log_softmax(output, dim=1)
+            
+            loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
             loss.backward()    # calc gradients
 
             # do not perform custom lr setting for built-in optimizer
             if optimizer_name in ['SGD', 'RMSprop']:
                 optimizer.step()
-            elif blocksize > 0 and blockdecay > 0:
+            elif block_size > 0 and block_decay > 0:
                 optimizer.step(lr=current_lr)
 
             epoch_loss += output.shape[0] * loss.item()
 
 
         # update learning rate
-        if blocksize > 0 and blockdecay > 0 and ((epoch) % blocksize) == 0:
-            current_lr = current_lr * blockdecay
+        if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
+            current_lr = current_lr * block_decay
+            if not lr_param:
+                optimizer = lr_setter.update_lr(optimizer, current_lr)
 
         # epoch loss
-        train_loss = epoch_loss / len(heldout_loader.dataset)
-        trial.report(train_loss, epoch-1)
+        nll_loss, _ = evaluate_nll(model, val_dataset)
+        trial.report(nll_loss, epoch-1)
 
         if trial.should_prune():
             raise optuna.TrialPruned()
 
-    return train_loss
+    return nll_loss
 
 def objective(trial):
     optim_params = {}

@@ -23,3 +23,21 @@ def evaluate(model, test_loader):
             accuracies.append(val_accuracy)
         
     return np.mean(accuracies), output
+
+def evaluate_nll(model, test_loader):
+    model.eval()
+    outputs = []
+    accuracies = []
+    loss_list = [] # list of per batch NLL loss
+    
+    with torch.no_grad():
+        for data, target in test_loader:
+            data = data.cuda()
+            target = target.cuda()
+            output = model(data)
+            output = F.log_softmax(output, dim=1)
+
+            loss = F.nll_loss(output, target)
+            loss_list.append(loss.cpu().numpy())
+        
+    return np.mean(loss_list), output
