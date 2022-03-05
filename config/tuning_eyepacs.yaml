@@ -1,6 +1,6 @@
 seed: 1
 trials: 5
-epoch: 10
+epoch: 5
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
