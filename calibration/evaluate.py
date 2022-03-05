@@ -18,7 +18,7 @@ import auc_mu
 
 sys.path.insert(1, '../')
 import timm
-from lib.dataset import load_predefined_heldout_train_test
+from lib.dataset import load_predefined_heldout_train_test, load_predefined_test
 import datetime
 
 seed = 1
@@ -36,7 +36,7 @@ parser.add_argument("-o", "--optimizers", default="",
                     help="optimizer")
 parser.add_argument("-n", "--nmodel", default=10,
                     help="number of models")
-parser.add_argument("-ds", "--dataset",
+parser.add_argument("-ds", "--dataset", default='eyepacs',
                     help="dataset")
 parser.add_argument("-r", "--rotate", default=0,
                     help="rotate data")
@@ -67,8 +67,14 @@ print(f"Dataset/Model\tOptimiser\tECE\tMCE\tNLL\tSCE\tACE\t" +
 for optimizer in optimizers:
     model = timm.create_model('inception_v4', pretrained=False, num_classes=3)
     model = model.cuda()
-    _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
+
+    # load data based on param `dataset`
+    val_dataset = None
+    if dataset == 'eyepacs':
+        _, val_dataset, _ = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
                                                     train_datadir, batch_size=batch_size)
+    else:
+        val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size)
 
     models = []
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]

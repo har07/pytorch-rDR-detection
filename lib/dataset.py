@@ -160,3 +160,11 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
     heldoutloader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
     return heldoutloader, testloader, trainloader
+
+def load_predefined_test(testdir, batch_size=50):
+    test_transforms = transforms.Compose([
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
+    test_data = datasets.ImageFolder(testdir, transform=test_transforms)
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
+    return testloader
