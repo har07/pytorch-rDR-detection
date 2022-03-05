@@ -182,14 +182,15 @@ def write_csv(filename, header=False, data=[]):
         writer = csv.writer(csvfile, delimiter=',')
         if header:
             writer.writerow(['epoch', 'train_seconds',
-                'train_loss', 'train_accuracy', 'accuracy'])
+                'train_loss', 'train_accuracy', 'accuracy', 'lr'])
         else:
             writer.writerow(["{}".format(x) for x in data[:6]] + ["{:0.4f}".format(x) for x in data[6:]])
 
-def write_board(epoch, tloss, tacc, acc):
+def write_board(epoch, tloss, tacc, acc, lr):
     writer.add_scalar("Train Loss/train", tloss, epoch)
     writer.add_scalar("Train Accuracy/train", tacc, epoch)
     writer.add_scalar("Val Accuracy/train", acc, epoch)
+    writer.add_scalar("Learning Rate", acc, lr)
 
 session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
@@ -279,9 +280,9 @@ for epoch in range(start_epoch, limit_epoch+1):
     print(f'Epoch: {epoch}\tTrain Sec: {elapsed:0.3f}')
     print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}')
 
-    write_board(epoch, train_loss, train_acc, val_accuracy)
+    write_board(epoch, train_loss, train_acc, val_accuracy, current_lr)
     write_csv(session_id+".csv", data=[epoch, elapsed, train_loss, 
-                                        train_acc, val_accuracy])
+                                        train_acc, val_accuracy, current_lr])
 
     # Save the model weights max for the last 20 epochs
     if num_epochs - epoch < 20:
