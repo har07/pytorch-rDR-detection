@@ -42,6 +42,8 @@ parser.add_argument("-ds", "--dataset", default='eyepacs',
                     help="dataset")
 parser.add_argument("-r", "--rotate", default=0,
                     help="rotate data")
+parser.add_argument("-valdir", "--val_dir_param", default=valid_datadir,
+                    help="directory containing validation data")
 
 args = parser.parse_args()
 dir_path = str(args.dir)
@@ -50,6 +52,7 @@ optimizers = str(args.optimizers)
 nmodel = int(args.nmodel)
 rotate = int(args.rotate)
 nmodel_max = int(args.model_max_idx)
+valid_datadir = str(args.val_dir_param)
 
 optimizers = optimizers.split(",")
 
