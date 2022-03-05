@@ -23,7 +23,7 @@ import timm
 
 sys.path.insert(1, '../')
 from lib.dataset import load_predefined_heldout_train_test
-from lib.weights import weight_for_batch
+from lib.weights import get_class_weights
 from sgld.sgld_optim import SGLD
 from sgld.psgld_optim import pSGLD
 from sgld.asgld_optim import ASGLD
@@ -215,6 +215,7 @@ if checkpoint != "":
     optimizer.load_state_dict(chk['optimizer_state_dict'])
     model.load_state_dict(chk['model_state_dict'])
 
+weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
 for epoch in range(start_epoch, limit_epoch+1):
     t0 = time.time()
     model.train()
@@ -232,7 +233,6 @@ for epoch in range(start_epoch, limit_epoch+1):
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
         
-        weights = weight_for_batch(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         

@@ -13,7 +13,7 @@ def weight_ess(count_classes, beta, count_samples):
     weight = weight / np.sum(weight) * count_classes
     return weight
 
-def weight_for_batch(method, count_classes, samples_per_class, beta = None):
+def get_class_weights(method, count_classes, samples_per_class, beta = None):
     if method == 'ens':
         weight = weight_ess(count_classes, beta, samples_per_class)
     elif method == 'ins':
