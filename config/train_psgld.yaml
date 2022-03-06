@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 10
-max_session_epoch: 5
+max_epoch: 25
+max_session_epoch: 15
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
@@ -14,7 +14,7 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
-  batch_size: 32
+  batch_size: 96
   train_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/test
   heldout_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/heldout
