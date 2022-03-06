@@ -1,12 +1,12 @@
 seed: 1
-max_epoch: 10
-max_session_epoch: 5
+max_epoch: 100
+max_session_epoch: 100
 block_size: 20
 block_decay: .5
 optimizer: pSGLD
 model: inception # inception | resnet | densenet
 pSGLD:
-  lr: 1.e-4
+  lr: 1.e-3
   train_size: 6264
   alpha: .95
   eps: 5.e-5
@@ -21,4 +21,4 @@ dataset:
 class_weight:
   samples_per_class: [3132,2671,456]
   method: ens # ins | isns | ens | none
-  beta: 0.9999 # only valid for ens
+  beta: 0.99 # only valid for ens
