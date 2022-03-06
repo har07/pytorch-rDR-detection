@@ -14,7 +14,7 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
-  batch_size: 96
+  batch_size: 64
   train_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/train
   valid_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/test
   heldout_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/heldout
