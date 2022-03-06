@@ -20,5 +20,5 @@ dataset:
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
 class_weight:
   samples_per_class: [3132,2671,456]
-  method: none # ins | isns | ens | none
+  method: ens # ins | isns | ens | none
   beta: 0.999 # only valid for ens
