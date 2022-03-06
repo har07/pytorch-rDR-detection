@@ -21,7 +21,7 @@ def get_class_weights(method, count_classes, samples_per_class, beta = None):
     elif method == 'isns':
         weight = weight_inv_of_samples(count_classes, samples_per_class, 0.5)
     else:
-        return None
+        return [1.,1.,1.]
         
     return weight
 
