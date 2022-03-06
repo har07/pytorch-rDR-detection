@@ -21,3 +21,7 @@ dataset:
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
+class_weight:
+  samples_per_class: [3132,2671,456]
+  method: ens # ins | isns | ens
+  beta: 0.99 # only valid for ens
