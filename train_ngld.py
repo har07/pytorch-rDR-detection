@@ -206,6 +206,7 @@ val_accuracy=0
 
 start_epoch = 1
 durations = []
+top20 = []
 
 # Load checkpoint if provided
 if checkpoint != "":
@@ -213,6 +214,7 @@ if checkpoint != "":
     start_epoch = chk['epoch'] + 1
     durations = chk['durations']
     step = chk['steps']
+    top20 = chk['top20']
     optimizer.load_state_dict(chk['optimizer_state_dict'])
     model.load_state_dict(chk['model_state_dict'])
 
@@ -285,7 +287,14 @@ for epoch in range(start_epoch, limit_epoch+1):
                                         train_acc, val_accuracy, current_lr])
 
     # Save the model weights max for the last 20 epochs
-    if num_epochs - epoch < 20:
+    # and top 10 val accuracy models
+    save = False
+    if len(top20) < 20 or top20[0] < val_accuracy or num_epochs - epoch < 20:
+        save = True
+        top20.append(val_accuracy)
+        top20.sort(reverse=True)
+        
+    if save:
         torch.save({
                 'model_state_dict': model.state_dict(),
                 # 'optimizer_state_dict': optimizer.state_dict(),
@@ -306,6 +315,7 @@ torch.save({
     'epoch': epoch,
     'steps': step,
     'durations': durations,
+    'top20': top20
 }, f"{save_model_path}/{session_id}_chk.pt")
 
 writer.flush()
