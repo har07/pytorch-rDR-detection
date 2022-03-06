@@ -14,11 +14,11 @@ pSGLD:
   centered: False
   addnoise: True
 dataset:
-  batch_size: 32
-  train_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/train
-  valid_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/test
-  heldout_dataset: /kaggle/tmp/eyepacs/eyepacs-multiclass/heldout
+  batch_size: 128
+  train_dataset: /kaggle/tmp/ddr-clahe/train
+  valid_dataset: /kaggle/tmp/ddr-clahe/test
+  heldout_dataset: /kaggle/tmp/ddr-clahe/valid
 class_weight:
-  samples_per_class: [31699,10187,831]
+  samples_per_class: [3132,2671,456]
   method: none # ins | isns | ens | none
   beta: 0.999 # only valid for ens
