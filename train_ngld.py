@@ -190,7 +190,7 @@ def write_board(epoch, tloss, tacc, acc, lr):
     writer.add_scalar("Train Loss/train", tloss, epoch)
     writer.add_scalar("Train Accuracy/train", tacc, epoch)
     writer.add_scalar("Val Accuracy/train", acc, epoch)
-    writer.add_scalar("Learning Rate", acc, lr)
+    writer.add_scalar("Learning Rate", lr, epoch)
 
 session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 write_csv(session_id+".csv", header=True)
