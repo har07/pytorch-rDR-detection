@@ -168,3 +168,33 @@ def load_predefined_test(testdir, batch_size=50):
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return testloader
+
+def calculate_mean_std(datadir):
+    # source: https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/39
+    
+    transform = transforms.Compose([transforms.ToTensor(),])
+
+    dataset = datasets.ImageFolder(datadir, transform=transform)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=1, shuffle=False)
+
+    mean = torch.zeros(3)
+    std = torch.zeros(3)
+
+    for i, data in enumerate(dataloader):
+        if (i % 10000 == 0): print(i)
+        data = data[0].squeeze(0)
+        if (i == 0): size = data.size(1) * data.size(2)
+        mean += data.sum((1, 2)) / size
+
+    mean /= len(dataloader)
+    print('mean: ', mean)
+    mean = mean.unsqueeze(1).unsqueeze(2)
+
+    for i, data in enumerate(dataloader):
+        if (i % 10000 == 0): print(i)
+        data = data[0].squeeze(0)
+        std += ((data - mean) ** 2).sum((1, 2)) / size
+
+    std /= len(dataloader)
+    std = std.sqrt()
+    print('std: ', std)
