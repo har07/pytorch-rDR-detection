@@ -25,6 +25,13 @@ def get_class_weights(method, count_classes, samples_per_class, beta = None):
         
     return weight
 
+def batch_samples_per_class(count_classes, batch):
+    class_freq = torch.bincount(batch).cpu().numpy()
+    for i in range(count_classes-len(class_freq)):
+        class_freq.append(0)
+
+    return class_freq
+
 # result:
 # INS:  [0.07099362 0.22091163 2.70809475]
 # ISNS:  [0.33556231 0.59193335 2.07250434]

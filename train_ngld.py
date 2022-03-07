@@ -23,7 +23,7 @@ import timm
 
 sys.path.insert(1, '../')
 from lib.dataset import load_predefined_heldout_train_test
-from lib.weights import get_class_weights
+from lib.weights import get_class_weights, batch_samples_per_class
 from sgld.sgld_optim import SGLD
 from sgld.psgld_optim import pSGLD
 from sgld.asgld_optim import ASGLD
@@ -82,6 +82,7 @@ heldout_datadir = config['dataset']['heldout_dataset']
 class_weight = config['class_weight']['method']
 samples_per_class = config['class_weight']['samples_per_class']
 class_weight_beta = config['class_weight']['beta']
+per_minibatch = config['class_weight']['per_minibatch']
 
 print("""
 Saving model and graph checkpoints at: {},
@@ -236,6 +237,10 @@ for epoch in range(start_epoch, limit_epoch+1):
         if epoch == 0:
             accum_target.extend(target.cpu().numpy())
         
+        if per_minibatch:
+            samples_per_class = batch_samples_per_class(len(samples_per_class), target)
+            weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
+            
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         
