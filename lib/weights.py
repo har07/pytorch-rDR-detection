@@ -27,8 +27,9 @@ def get_class_weights(method, count_classes, samples_per_class, beta = None):
 
 def batch_samples_per_class(count_classes, batch):
     class_freq = torch.bincount(batch).cpu().numpy()
-    for i in range(count_classes-len(class_freq)):
-        class_freq.append(0)
+    if len(class_freq) < count_classes:
+        # if samples for some classes are missing, append corresponding 0 entries
+        class_freq = np.append(class_freq, [0]*(count_classes-len(class_freq)))
 
     return class_freq
 
