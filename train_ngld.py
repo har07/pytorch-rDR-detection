@@ -75,6 +75,8 @@ block_size = config['block_size']
 block_decay = config['block_decay']
 
 batch_size = config['dataset']['batch_size']
+dataset_mean = config['dataset']['mean']
+dataset_std = config['dataset']['std']
 train_datadir = config['dataset']['train_dataset']
 valid_datadir = config['dataset']['valid_dataset']
 heldout_datadir = config['dataset']['heldout_dataset']
@@ -111,7 +113,8 @@ train_dataset = None
 val_dataset = None
 
 _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
-                                                    train_datadir, batch_size=batch_size)
+                                                    train_datadir, batch_size=batch_size, \
+                                                    mean=dataset_mean, std=dataset_std)
 
 # Base model InceptionV3 with global average pooling.
 model = None
@@ -240,7 +243,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         if per_minibatch:
             samples_per_class = batch_samples_per_class(len(samples_per_class), target)
             weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
-            
+
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         

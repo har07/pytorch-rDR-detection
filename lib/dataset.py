@@ -126,7 +126,8 @@ def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=F
     testloader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=valid_bs)
     return trainloader, testloader
 
-def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size=128, weighted_sampler=False, count_samples=0):
+def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size=128, \
+        weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
     train_transforms = transforms.Compose(
         [
             transforms.RandomHorizontalFlip(),
@@ -136,11 +137,11 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
                 saturation=(SATURATION_LOWER,SATURATION_UPPER),
                 hue=HUE_MAX_DELTA),
             transforms.ToTensor(),
-            transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5)) # normalize to range [-1,1]
+            transforms.Normalize(mean, std)
         ])  
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),
-                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
+                                     transforms.Normalize(mean, std)])
     heldout_data = datasets.ImageFolder(heldoutdir, transform=train_transforms)
     train_data = datasets.ImageFolder(traindir, transform=train_transforms)
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
@@ -161,17 +162,17 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     heldoutloader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
     return heldoutloader, testloader, trainloader
 
-def load_predefined_test(testdir, batch_size=50):
+def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),
-                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
+                                     transforms.Normalize(mean, std)]) # normalize to range [-1,1]
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return testloader
 
 def calculate_mean_std(datadir):
     # source: https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/39
-    
+
     transform = transforms.Compose([transforms.ToTensor(),])
 
     dataset = datasets.ImageFolder(datadir, transform=transform)
