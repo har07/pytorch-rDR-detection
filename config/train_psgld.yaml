@@ -24,4 +24,4 @@ class_weight:
   samples_per_class: [3132,2671,456]
   method: ens # ins | isns | ens | none
   beta: 0.999 # only valid for ens
-  per_minibatch: True
+  per_minibatch: False
