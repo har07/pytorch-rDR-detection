@@ -83,7 +83,7 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
     lr_param = 'lr' in step_args.parameters
 
     weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
-    best_nll = 100 # init with large value
+    nlls = []
     for epoch in range(1, epochs+1):
         model.train()
         epoch_loss = 0.0
@@ -114,15 +114,14 @@ def train(trial, model, optimizer, heldout_loader, epochs, lr):
 
         # epoch loss
         nll_loss, _ = evaluate_nll(model, val_dataset)
+        nlls.append(nll_loss)
         trial.report(nll_loss, epoch-1)
 
         if trial.should_prune():
             raise optuna.TrialPruned()
 
-        if nll_loss < best_nll:
-            best_nll = nll_loss
-
-    return best_nll
+    # objective consider mean nlls and last nll
+    return (np.mean(nlls) + nll_loss) / 2
 
 def objective(trial):
     optim_params = {}
