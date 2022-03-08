@@ -130,14 +130,7 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
         weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
     train_transforms = transforms.Compose(
         [
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomAffine(180, translate=(0.000167,0.000167), scale=(.9, 1.1)),
-            transforms.ColorJitter(
-                brightness=BRIGHTNESS_MAX_DELTA,
-                contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
-                saturation=(SATURATION_LOWER,SATURATION_UPPER),
-                hue=HUE_MAX_DELTA),
+            transforms.TrivialAugmentWide(),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
         ])  
