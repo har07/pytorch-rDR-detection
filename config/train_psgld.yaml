@@ -6,7 +6,7 @@ block_decay: .5
 optimizer: pSGLD
 model: inception # inception | resnet | densenet
 pSGLD:
-  lr: 1.e-4
+  lr: 1.e-3
   train_size: 6264
   alpha: .95
   eps: 5.e-5
