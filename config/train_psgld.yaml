@@ -1,12 +1,12 @@
 seed: 1
-max_epoch: 40
-max_session_epoch: 30
+max_epoch: 20
+max_session_epoch: 20
 block_size: 40
 block_decay: .5
 optimizer: pSGLD
 model: inception # inception | resnet | densenet
 pSGLD:
-  lr: 5.e-5
+  lr: 1.e-5
   train_size: 6264
   alpha: .95
   eps: 5.e-5
@@ -22,6 +22,6 @@ dataset:
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
 class_weight:
   samples_per_class: [3132,2671,456]
-  method: ens # ins | isns | ens | none
+  method: none # ins | isns | ens | none
   beta: 0.999 # only valid for ens
   per_minibatch: False
