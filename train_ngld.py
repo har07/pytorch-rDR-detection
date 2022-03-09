@@ -121,16 +121,16 @@ model = None
 if model_type == 'resnet':
     model = torchvision.models.resnet101(pretrained=True, progress=True)
 elif model_type == 'densenet':
-    model = timm.create_model('densenet121', pretrained=True, num_classes=3)
+    model = timm.create_model('densenet121', pretrained=True, num_classes=5)
 else:
-    model = timm.create_model('inception_v4', pretrained=True, num_classes=3)
+    model = timm.create_model('inception_v4', pretrained=True, num_classes=5)
 
 
 # Reset the layer with the same amount of neurons as labels.
 
 if model_type == 'resnet':
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 1)
+    model.fc = nn.Linear(num_ftrs, 5)
 
 model = model.cuda()
 

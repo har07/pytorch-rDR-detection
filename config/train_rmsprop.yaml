@@ -3,16 +3,11 @@ max_epoch: 40
 max_session_epoch: 30
 block_size: 40
 block_decay: .5
-optimizer: pSGLD
+optimizer: RMSProp
 model: inception # inception | resnet | densenet
-pSGLD:
-  lr: 5.e-5
-  train_size: 6264
-  alpha: .95
-  eps: 5.e-5
-  num_burn_in_steps: 300
-  centered: False
-  addnoise: True
+RMSProp:
+  lr: 1.e-3
+  weight_decay: 4.e-5
 dataset:
   batch_size: 64
   mean: [0.5,0.5,0.5]
@@ -21,7 +16,7 @@ dataset:
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
 class_weight:
-  samples_per_class: [3132,315,2238,118,456]
+  samples_per_class: [3132,2671,456]
   method: ens # ins | isns | ens | none
   beta: 0.999 # only valid for ens
   per_minibatch: False
