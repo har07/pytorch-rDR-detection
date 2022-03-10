@@ -11,7 +11,7 @@ import lib.dataset
 import lib.evaluation
 import lib.lr_setter as lr_setter
 # from lib.preprocess import rescale_min_1_to_1, rescale_0_to_1
-from torch.optim import RMSprop, SGD
+from torch.optim import RMSprop, SGD, Adam
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
@@ -70,6 +70,7 @@ with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
 
 model_type = config['model']
+drop_rate = config['drop_rate']
 seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
@@ -123,7 +124,7 @@ if model_type == 'resnet':
 elif model_type == 'densenet':
     model = timm.create_model('densenet121', pretrained=True, num_classes=3)
 else:
-    model = timm.create_model('inception_v4', pretrained=True, num_classes=3)
+    model = timm.create_model('inception_v4', pretrained=True, num_classes=3, drop_rate=drop_rate)
 
 
 # Reset the layer with the same amount of neurons as labels.
@@ -133,6 +134,7 @@ if model_type == 'resnet':
     model.fc = nn.Linear(num_ftrs, 1)
 
 model = model.cuda()
+opt = Adam()
 
 # Define optimizer.
 accept_model = False
