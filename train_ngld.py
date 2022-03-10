@@ -245,7 +245,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         optimizer.zero_grad()
         output = model(data)
         output = F.log_softmax(output, dim=1)
-        if epoch == 0:
+        if epoch == 1:
             accum_target.extend(target.cpu().numpy())
         
         if per_minibatch:
@@ -284,7 +284,7 @@ for epoch in range(start_epoch, limit_epoch+1):
 
     # inspect training data composition in first epoch
     eval_verbose = False
-    if epoch == 0:
+    if epoch == 1:
         eval_verbose = True
         class_0 = len([x for x in accum_target if int(x) == 0])
         print('training composition: 0={}, 1={}'.format(class_0, len(accum_target)-class_0))
@@ -295,7 +295,7 @@ for epoch in range(start_epoch, limit_epoch+1):
     train_acc = np.mean(accuracy)
 
     # update learning rate for next epoch based on loss penalty scheme
-    if decay_by_loss and epoch > 0 and prev_loss > train_loss:
+    if decay_by_loss and epoch > 1 and prev_loss > train_loss:
         current_lr = current_lr * decay_rate
         if not lr_param:
             optimizer = lr_setter.update_optimizer(optimizer, current_lr)
