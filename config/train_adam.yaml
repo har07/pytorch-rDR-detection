@@ -4,7 +4,7 @@ max_session_epoch: 30
 block_size: 40
 block_decay: .5
 optimizer: Adam
-model: inception # inception | resnet | densenet
+model: densenet # inception | resnet | densenet
 drop_rate: .5
 decay_lr_by_loss: True
 Adam:
