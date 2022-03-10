@@ -1,4 +1,4 @@
-seed: 1
+seed: 9
 max_epoch: 30
 max_session_epoch: 30
 block_size: 40
@@ -7,7 +7,7 @@ optimizer: Adam
 model: inception # inception | resnet | densenet
 drop_rate: .5
 Adam:
-  lr: 1.e-4
+  lr: 1.e-3
   _decay_by_loss: False
   _decay_rate: .1
 dataset:
