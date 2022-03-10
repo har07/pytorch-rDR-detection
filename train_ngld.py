@@ -231,7 +231,7 @@ if checkpoint != "":
     model.load_state_dict(chk['model_state_dict'])
 
 weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
-last_loss = 0.0
+prev_loss = 0.0
 for epoch in range(start_epoch, limit_epoch+1):
     t0 = time.time()
     model.train()
@@ -296,11 +296,13 @@ for epoch in range(start_epoch, limit_epoch+1):
     train_acc = np.mean(accuracy)
 
     # update learning rate for next epoch based on loss penalty scheme
-    last_loss = train_loss
-    if decay_by_loss and last_loss > train_loss:
+    if decay_by_loss and epoch > 0 and prev_loss > train_loss:
         current_lr = current_lr * decay_rate
         if not lr_param:
             optimizer = lr_setter.update_lr(optimizer, current_lr)
+    
+    # remember current train loss
+    prev_loss = train_loss
 
     print(f'Epoch: {epoch}\tTrain Sec: {elapsed:0.3f}')
     print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}')
