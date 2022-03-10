@@ -131,8 +131,6 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     train_transforms = transforms.Compose(
         [
             transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomAffine(180, translate=(0.000167,0.000167), scale=(.9, 1.1)),
             transforms.ColorJitter(
                 brightness=BRIGHTNESS_MAX_DELTA,
                 contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
