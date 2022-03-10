@@ -7,7 +7,7 @@ optimizer: pSGLD
 model: inception # inception | resnet | densenet
 drop_rate: .0
 pSGLD:
-  lr: 1.e-4
+  lr: 1.e-5
   train_size: 1373
   alpha: .95
   eps: 5.e-5
