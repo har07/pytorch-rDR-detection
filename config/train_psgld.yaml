@@ -5,6 +5,7 @@ block_size: 40
 block_decay: .5
 optimizer: pSGLD
 model: inception # inception | resnet | densenet
+drop_rate: .0
 pSGLD:
   lr: 1.e-6
   train_size: 1373
@@ -13,6 +14,8 @@ pSGLD:
   num_burn_in_steps: 300
   centered: False
   addnoise: True
+  _decay_by_loss: False
+  _decay_rate: .1
 dataset:
   batch_size: 64
   mean: [0.4064, 0.2913, 0.1175]
