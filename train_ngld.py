@@ -256,9 +256,8 @@ for epoch in range(start_epoch, limit_epoch+1):
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
         
-        # exception for SGD: do not perform lr decay
-         # do not perform custom lr setting for built-in optimizer
-        if optimizer_name in ['SGD', 'RMSprop']:
+        # do not perform custom lr setting for built-in optimizer
+        if optimizer_name in ['SGD', 'RMSprop', 'Adam']:
             optimizer.step()
         elif block_size > 0 and block_decay > 0:
             optimizer.step(lr=current_lr)
@@ -278,7 +277,7 @@ for epoch in range(start_epoch, limit_epoch+1):
     elapsed = time.time() - t0
     durations.append(elapsed)
 
-    # update learning rate for next epoch
+    # update learning rate for next epoch based on block decay scheme
     if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
         current_lr = current_lr * block_decay
         if not lr_param:
@@ -296,9 +295,12 @@ for epoch in range(start_epoch, limit_epoch+1):
     train_loss = np.mean(loss.item())
     train_acc = np.mean(accuracy)
 
+    # update learning rate for next epoch based on loss penalty scheme
     last_loss = train_loss
     if decay_by_loss and last_loss > train_loss:
         current_lr = current_lr * decay_rate
+        if not lr_param:
+            optimizer = lr_setter.update_lr(optimizer, current_lr)
 
     print(f'Epoch: {epoch}\tTrain Sec: {elapsed:0.3f}')
     print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}')
