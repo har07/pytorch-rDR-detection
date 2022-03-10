@@ -134,7 +134,13 @@ if model_type == 'resnet':
     model.fc = nn.Linear(num_ftrs, 1)
 
 model = model.cuda()
-opt = Adam()
+
+# lr decay following (Paradisa, 2022)
+decay_by_loss = config[optimizer_name]['_decay_by_loss']
+decay_rate = 0.
+if decay_by_loss: 
+    decay_rate = config[optimizer_name]['_decay_rate']
+
 
 # Define optimizer.
 accept_model = False
@@ -225,6 +231,7 @@ if checkpoint != "":
     model.load_state_dict(chk['model_state_dict'])
 
 weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
+last_loss = 0.0
 for epoch in range(start_epoch, limit_epoch+1):
     t0 = time.time()
     model.train()
@@ -288,6 +295,10 @@ for epoch in range(start_epoch, limit_epoch+1):
     val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset)
     train_loss = np.mean(loss.item())
     train_acc = np.mean(accuracy)
+
+    last_loss = train_loss
+    if decay_by_loss and last_loss > train_loss:
+        current_lr = current_lr * decay_rate
 
     print(f'Epoch: {epoch}\tTrain Sec: {elapsed:0.3f}')
     print(f'Epoch: {epoch}\tTLoss: {train_loss:0.3f}\tTAcc: {train_acc:0.3f}\tAcc: {val_accuracy:0.3f}')

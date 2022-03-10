@@ -6,8 +6,11 @@ block_decay: .5
 optimizer: Adam
 model: inception # inception | resnet | densenet
 drop_rate: .5
+decay_lr_by_loss: True
 Adam:
   lr: 1.e-3
+  _decay_by_loss: True
+  _decay_rate: .1
 dataset:
   batch_size: 64
   mean: [0.5,0.5,0.5]
