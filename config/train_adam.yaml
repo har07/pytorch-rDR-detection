@@ -1,4 +1,4 @@
-seed: 0
+seed: 100
 max_epoch: 30
 max_session_epoch: 30
 block_size: 40
