@@ -6,10 +6,6 @@ import sys
 import argparse
 import csv
 from glob import glob
-import lib.metrics
-import lib.dataset
-import lib.evaluation
-import lib.lr_setter as lr_setter
 # from lib.preprocess import rescale_min_1_to_1, rescale_0_to_1
 from torch.optim import RMSprop, SGD, Adam
 import torch.nn as nn
@@ -22,6 +18,9 @@ import yaml
 import timm
 
 sys.path.insert(1, '../')
+import lib.metrics
+import lib.dataset
+import lib.evaluation
 from lib.dataset import load_predefined_heldout_train_test
 from lib.weights import get_class_weights, batch_samples_per_class
 from sgld.sgld_optim import SGLD
@@ -281,7 +280,7 @@ for epoch in range(start_epoch, limit_epoch+1):
     if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
         current_lr = current_lr * block_decay
         if not lr_param:
-            optimizer = lr_setter.update_lr(optimizer, current_lr)
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
 
     # inspect training data composition in first epoch
     eval_verbose = False
@@ -299,7 +298,7 @@ for epoch in range(start_epoch, limit_epoch+1):
     if decay_by_loss and epoch > 0 and prev_loss > train_loss:
         current_lr = current_lr * decay_rate
         if not lr_param:
-            optimizer = lr_setter.update_lr(optimizer, current_lr)
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
     
     # remember current train loss
     prev_loss = train_loss
