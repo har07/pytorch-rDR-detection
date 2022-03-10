@@ -1,13 +1,13 @@
 seed: 1
-max_epoch: 20
-max_session_epoch: 20
+max_epoch: 40
+max_session_epoch: 40
 block_size: 40
 block_decay: .5
 optimizer: pSGLD
 model: inception # inception | resnet | densenet
 pSGLD:
-  lr: 1.e-5
-  train_size: 6264
+  lr: 1.e-6
+  train_size: 1373
   alpha: .95
   eps: 5.e-5
   num_burn_in_steps: 300
@@ -15,8 +15,8 @@ pSGLD:
   addnoise: True
 dataset:
   batch_size: 64
-  mean: [0.5,0.5,0.5]
-  std: [0.5,0.5,0.5]
+  mean: [0.4064, 0.2913, 0.1175]
+  std: [0.3019, 0.2125, 0.1318]
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
