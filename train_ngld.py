@@ -70,6 +70,7 @@ with open(yaml_path) as f:
 
 model_type = config['model']
 drop_rate = config['drop_rate']
+pretrained = config['pretrained']
 seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
@@ -119,11 +120,11 @@ _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datad
 # Base model InceptionV3 with global average pooling.
 model = None
 if model_type == 'resnet':
-    model = torchvision.models.resnet101(pretrained=True, progress=True)
+    model = torchvision.models.resnet101(pretrained=pretrained, progress=True)
 elif model_type == 'densenet':
-    model = timm.create_model('densenet121', pretrained=True, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('densenet121', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 else:
-    model = timm.create_model('inception_v4', pretrained=True, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
 
 # Reset the layer with the same amount of neurons as labels.
