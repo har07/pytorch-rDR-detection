@@ -9,7 +9,7 @@ drop_rate: .0
 pretrained: True
 pSGLD:
   lr: 1.e-4
-  train_size: 2746 # 1373
+  train_size: 1 # 1373
   alpha: .95
   eps: 5.e-5
   num_burn_in_steps: 300
