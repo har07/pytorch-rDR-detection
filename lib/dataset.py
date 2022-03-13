@@ -132,8 +132,8 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
         [
             # augmentation following team o_O re-implementation: 
             # https://github.com/YijinHuang/pytorch-DR/blob/reimplement/data_utils.py#L33
-            transforms.RandomResizedCrop(229, scale=(1 / 1.15, 1.15), ratio=(0.7561, 1.3225)),
-            transforms.RandomAffine(180, translate=(40 / 229, 40 / 229)),
+            transforms.RandomResizedCrop(299, scale=(1 / 1.15, 1.15), ratio=(0.7561, 1.3225)),
+            transforms.RandomAffine(180, translate=(40 / 299, 40 / 299)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.ToTensor(),
