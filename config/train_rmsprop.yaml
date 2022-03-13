@@ -16,8 +16,8 @@ RMSprop:
   _decay_rate: .1
 dataset:
   batch_size: 64
-  mean: [0.4064, 0.2913, 0.1175]
-  std: [0.3019, 0.2125, 0.1318]
+  mean: [0.5, 0.5, 0.5]
+  std: [0.5, 0.5, 0.5]
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
