@@ -130,10 +130,7 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
         weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
     train_transforms = transforms.Compose(
         [
-            # augmentation following team o_O re-implementation, minus color transform: 
-            # https://github.com/YijinHuang/pytorch-DR/blob/reimplement/data_utils.py#L33
-            transforms.RandomResizedCrop(299, scale=(1 / 1.15, 1.15), ratio=(0.7561, 1.3225)),
-            transforms.RandomAffine(180, translate=(40 / 299, 40 / 299)),
+            transforms.RandomAffine(180, translate=(0.000167,0.000167), scale=(.9, 1.1)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.ToTensor(),
