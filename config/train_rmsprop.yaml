@@ -8,13 +8,15 @@ model: inception # inception | resnet | densenet
 drop_rate: .0
 pretrained: True
 RMSprop:
-  lr: 1.e-3
+  lr: 1.e-4
   alpha: .95
   eps: 5.e-5
   centered: False
   _decay_by_loss: False
   _decay_rate: .1
 dataset:
+  augmentation: FILOS_2019
+  color_jitter: False
   batch_size: 64
   mean: [0.4064, 0.2913, 0.1175]
   std: [0.3019, 0.2125, 0.1318]
