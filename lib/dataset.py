@@ -13,6 +13,43 @@ HUE_MAX_DELTA = 0.2
 CONTRAST_LOWER = 0.5
 CONTRAST_UPPER = 1.5
 
+# augmentation scheme: VOETS_2019 | FILOS_2019 | TEAM_o_O
+def get_augmentation(scheme, color_jitter=True, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
+    operations = []
+    if scheme == 'VOETS_2019':
+        operations = [
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
+        ]
+    elif scheme == 'FILOS_2019':
+        operations = [
+            transforms.RandomAffine(180, translate=(0.000167,0.000167), scale=(.9, 1.1)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
+        ]
+    elif scheme == 'TEAM_o_O':
+        # https://github.com/YijinHuang/pytorch-DR/blob/reimplement/data_utils.py#L33
+        operations = [
+            transforms.RandomResizedCrop(299, scale=(1 / 1.15, 1.15), ratio=(0.7561, 1.3225)),
+            transforms.RandomAffine(180, translate=(40 / 299, 40 / 299)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
+        ]
+
+    if color_jitter:
+        operations.append(transforms.ColorJitter(
+                brightness=BRIGHTNESS_MAX_DELTA,
+                contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
+                saturation=(SATURATION_LOWER,SATURATION_UPPER),
+                hue=HUE_MAX_DELTA))
+
+    return transforms.Compose(operations)
+
 # Code borrowed from: https://github.com/ufoym/imbalanced-dataset-sampler
 class ImbalancedDatasetSampler(torch.utils.data.sampler.Sampler):
     """Samples elements randomly from a given list of indices for imbalanced dataset
@@ -127,15 +164,9 @@ def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=F
     return trainloader, testloader
 
 def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size=128, \
-        weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
-    train_transforms = transforms.Compose(
-        [
-            transforms.RandomAffine(180, translate=(0.000167,0.000167), scale=(.9, 1.1)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std),
-        ])  
+        weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5], \
+        augmentation='FILOS_2019', color_jitter=False):
+    train_transforms = get_augmentation(augmentation, color_jitter=color_jitter, mean=mean, std=std)
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),
                                      transforms.Normalize(mean, std)])

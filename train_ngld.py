@@ -75,6 +75,8 @@ seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
+augmentation = config['dataset']['augmentation']
+color_jitter = config['dataset']['color_jitter']
 batch_size = config['dataset']['batch_size']
 dataset_mean = config['dataset']['mean']
 dataset_std = config['dataset']['std']
@@ -115,7 +117,8 @@ val_dataset = None
 
 _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
                                                     train_datadir, batch_size=batch_size, \
-                                                    mean=dataset_mean, std=dataset_std)
+                                                    mean=dataset_mean, std=dataset_std, augmentation=augmentation, \
+                                                    color_jitter=color_jitter)
 
 # Base model InceptionV3 with global average pooling.
 model = None
@@ -332,8 +335,7 @@ for epoch in range(start_epoch, limit_epoch+1):
     if limit_epoch > 0 and epoch >= limit_epoch:
         break
 
- # save params so that we can resume training
-
+# save params so that we can resume training
 torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict(),
@@ -344,6 +346,11 @@ torch.save({
 }, f"{save_model_path}/{session_id}_chk.pt")
 
 writer.flush()
+
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}")
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}", file=f)
+
+print(f"top 20 val accuracy (mean +/- std): {np.mean(top20):.2f} +/- {np.std(top20):.2f}")
+print(f"top 20 val accuracy (mean +/- std): {np.mean(top20):.2f} +/- {np.std(top20):.2f}", file=f)
+
 f.close()
