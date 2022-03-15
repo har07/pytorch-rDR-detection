@@ -27,6 +27,6 @@ dataset:
   count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
   samples_per_class: [3132,2671,456]
-  method: isns # ins | isns | ens | none
+  method: ens # ins | isns | ens | none
   beta: 0.999 # only valid for ens
   per_minibatch: False
