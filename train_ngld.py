@@ -75,6 +75,8 @@ seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
+oversampling = config['dataset']['oversampling']
+count_samples = config['dataset']['count_samples']
 augmentation = config['dataset']['augmentation']
 color_jitter = config['dataset']['color_jitter']
 batch_size = config['dataset']['batch_size']
@@ -118,7 +120,8 @@ val_dataset = None
 _, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
                                                     train_datadir, batch_size=batch_size, \
                                                     mean=dataset_mean, std=dataset_std, augmentation=augmentation, \
-                                                    color_jitter=color_jitter)
+                                                    color_jitter=color_jitter, weighted_sampler=oversampling, \
+                                                    count_samples=count_samples)
 
 # Base model InceptionV3 with global average pooling.
 model = None
@@ -315,7 +318,7 @@ for epoch in range(start_epoch, limit_epoch+1):
                                         train_acc, val_accuracy, current_lr])
 
     # Save the model weights max for the last 20 epochs
-    # and top 10 val accuracy models
+    # and top 20 val accuracy models
     save = False
     if len(top20) < 20 or top20[0] < val_accuracy or num_epochs - epoch < 20:
         save = True
