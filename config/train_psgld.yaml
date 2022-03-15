@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 40
-max_session_epoch: 40
+max_epoch: 30
+max_session_epoch: 30
 block_size: 40
 block_decay: .5
 optimizer: pSGLD
@@ -9,7 +9,7 @@ drop_rate: .0
 pretrained: True
 pSGLD:
   lr: 1.e-4
-  train_size: 1 # 1373
+  train_size: 9396 # 1373
   alpha: .95
   eps: 5.e-5
   num_burn_in_steps: 300
@@ -18,14 +18,18 @@ pSGLD:
   _decay_by_loss: False
   _decay_rate: .1
 dataset:
+  augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
+  color_jitter: False
   batch_size: 64
   mean: [0.4064, 0.2913, 0.1175]
   std: [0.3019, 0.2125, 0.1318]
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
+  oversampling: True
+  count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
   samples_per_class: [3132,2671,456]
   method: none # ins | isns | ens | none
-  beta: 0.999 # only valid for ens
+  beta: 0.99 # only valid for ens
   per_minibatch: False
