@@ -5,7 +5,7 @@ block_size: 40
 block_decay: .5
 optimizer: Adam
 model: densenet # inception | resnet | densenet
-drop_rate: .0
+drop_rate: .5
 pretrained: True
 Adam:
   lr: 1.e-3
