@@ -26,7 +26,7 @@ dataset:
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
-  oversampling: True
+  oversampling: False
   count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
   samples_per_class: [3132,2671,456]
