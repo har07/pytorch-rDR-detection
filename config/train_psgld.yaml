@@ -8,7 +8,7 @@ model: inception # inception | resnet | densenet
 drop_rate: .0
 pretrained: True
 pSGLD:
-  lr: 1.e-5
+  lr: 1.e-4
   train_size: 9396 # 1373
   alpha: .95
   eps: 5.e-5
@@ -18,7 +18,7 @@ pSGLD:
   _decay_by_loss: False
   _decay_rate: .1
 dataset:
-  augmentation: FILOS_2019 # VOETS_2019 | FILOS_2019 | TEAM_o_O
+  augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
   batch_size: 64
   mean: [0.4064, 0.2913, 0.1175]
@@ -26,7 +26,7 @@ dataset:
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
-  oversampling: False
+  oversampling: True
   count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
   samples_per_class: [3132,2671,456]
