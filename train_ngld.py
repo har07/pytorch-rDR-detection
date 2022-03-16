@@ -317,14 +317,19 @@ for epoch in range(start_epoch, limit_epoch+1):
     write_csv(session_id+".csv", data=[epoch, elapsed, train_loss, 
                                         train_acc, val_accuracy, current_lr])
 
-    # Save the model weights max for the last 20 epochs
-    # and top 20 val accuracy models
+    # Save the model weights for the top 20 val accuracy
     save = False
-    if len(top20) < 20 or top20[0] < val_accuracy or num_epochs - epoch < 20:
+    if len(top20) < 20 or top20[-1]['acc'] < val_accuracy:
         save = True
-        top20.append(val_accuracy)
-        top20.sort(reverse=True)
-        
+        top20.append({'acc':val_accuracy, 'epoch':epoch})
+        top20.sort(key=lambda x: x['acc'], reverse=True)
+        if len(top20) > 20:
+            top20.pop()
+
+    # Also save the model weights for the last 20 epochs
+    if num_epochs - epoch < 20:
+        save = True
+
     if save:
         torch.save({
                 'model_state_dict': model.state_dict(),
@@ -345,7 +350,7 @@ torch.save({
     'epoch': epoch,
     'steps': step,
     'durations': durations,
-    'top20': top20
+    'top20': top20,
 }, f"{save_model_path}/{session_id}_chk.pt")
 
 writer.flush()
@@ -353,7 +358,12 @@ writer.flush()
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}")
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}", file=f)
 
-print(f"top 20 val accuracy (mean +/- std): {np.mean(top20):.2f} +/- {np.std(top20):.2f}")
-print(f"top 20 val accuracy (mean +/- std): {np.mean(top20):.2f} +/- {np.std(top20):.2f}", file=f)
+top20_acc = [t['acc'] for t in top20]
+print(f"top 20 val accuracy (mean +/- std): {np.mean(top20_acc):.2f} +/- {np.std(top20_acc):.2f}")
+print(f"top 20 val accuracy (mean +/- std): {np.mean(top20_acc):.2f} +/- {np.std(top20_acc):.2f}", file=f)
+
+top20_epoch = [t['epoch'] for t in top20]
+print(f"top 20 epoch: {top20_epoch}")
+print(f"top 20 epoch: {top20_epoch}", file=f)
 
 f.close()
