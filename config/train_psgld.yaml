@@ -4,7 +4,7 @@ max_session_epoch: 30
 block_size: 40
 block_decay: .5
 optimizer: pSGLD
-model: xception # inception | resnet | densenet | inception_v3 | inception_resnet | xception
+model: inception_v3 # inception | resnet | densenet | inception_v3 | inception_resnet | xception
 drop_rate: .0
 pretrained: True
 pSGLD:
