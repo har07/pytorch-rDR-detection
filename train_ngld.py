@@ -129,6 +129,8 @@ if model_type == 'resnet':
     model = torchvision.models.resnet101(pretrained=pretrained, progress=True)
 elif model_type == 'densenet':
     model = timm.create_model('densenet121', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+elif model_type == 'inception_v3':
+    model = timm.create_model('inception_v3', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 else:
     model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
