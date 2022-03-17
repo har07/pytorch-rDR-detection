@@ -131,6 +131,10 @@ elif model_type == 'densenet':
     model = timm.create_model('densenet121', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'inception_v3':
     model = timm.create_model('inception_v3', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+elif model_type == 'inception_resnet':
+    model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+elif model_type == 'xception':
+    model = timm.create_model('xception', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 else:
     model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
