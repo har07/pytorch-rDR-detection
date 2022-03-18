@@ -135,13 +135,15 @@ elif model_type == 'inception_resnet':
     model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'xception':
     model = timm.create_model('xception', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+elif model_type == 'inception_torch':
+    model = torchvision.models.inception_v3(pretrained=pretrained, progress=True)
 else:
     model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
 
 # Reset the layer with the same amount of neurons as labels.
 
-if model_type == 'resnet':
+if model_type == 'resnet' or model_type == 'inception_torch':
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 1)
 
