@@ -136,7 +136,7 @@ elif model_type == 'inception_resnet':
 elif model_type == 'xception':
     model = timm.create_model('xception', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'inception_torch':
-    model = torchvision.models.inception_v3(pretrained=pretrained, progress=True)
+    model = torchvision.models.inception_v3(pretrained=pretrained, progress=True, aux_logits=False)
 else:
     model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
@@ -260,8 +260,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.cuda()
         optimizer.zero_grad()
         output = model(data)
-        if not model_type in torchv_models:
-            output = F.log_softmax(output, dim=1)
+        output = F.log_softmax(output, dim=1)
         if epoch == 1:
             accum_target.extend(target.cpu().numpy())
         
