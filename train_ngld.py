@@ -260,7 +260,8 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.cuda()
         optimizer.zero_grad()
         output = model(data)
-        output = F.log_softmax(output, dim=1)
+        if not model_type in torchv_models:
+            output = F.log_softmax(output, dim=1)
         if epoch == 1:
             accum_target.extend(target.cpu().numpy())
         
