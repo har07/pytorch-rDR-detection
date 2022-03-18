@@ -143,7 +143,8 @@ else:
 
 # Reset the layer with the same amount of neurons as labels.
 
-if model_type == 'resnet' or model_type == 'inception_torch':
+torchv_models = ['resnet','inception_torch']
+if model_type in torchv_models:
     num_ftrs = model.fc.in_features
     model.fc = nn.Linear(num_ftrs, 1)
 
@@ -259,7 +260,8 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.cuda()
         optimizer.zero_grad()
         output = model(data)
-        output = F.log_softmax(output, dim=1)
+        if not model_type in torchv_models:
+            output = F.log_softmax(output, dim=1)
         if epoch == 1:
             accum_target.extend(target.cpu().numpy())
         
