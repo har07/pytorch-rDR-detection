@@ -299,19 +299,6 @@ for epoch in range(start_epoch, limit_epoch+1):
     elapsed = time.time() - t0
     durations.append(elapsed)
 
-    # update learning rate for next epoch based on block decay scheme
-    if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
-        current_lr = current_lr * block_decay
-        if not lr_param:
-            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
-
-    # update learning rate for next epoch based on fixed lr schedule
-    if fixed_lr and epoch+1 in fixed_lr_schedule:
-        current_lr = fixed_lr_schedule[epoch+1]
-        if not lr_param:
-            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
-    
-
     # inspect training data composition in first epoch
     eval_verbose = False
     if epoch == 1:
@@ -323,12 +310,6 @@ for epoch in range(start_epoch, limit_epoch+1):
     val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset)
     train_loss = np.mean(loss.item())
     train_acc = np.mean(accuracy)
-
-    # update learning rate for next epoch based on loss penalty scheme
-    if decay_by_loss and epoch > 1 and prev_loss > train_loss:
-        current_lr = current_lr * decay_rate
-        if not lr_param:
-            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
     
     # remember current train loss
     prev_loss = train_loss
@@ -339,6 +320,24 @@ for epoch in range(start_epoch, limit_epoch+1):
     write_board(epoch, train_loss, train_acc, val_accuracy, current_lr)
     write_csv(session_id+".csv", data=[epoch, elapsed, train_loss, 
                                         train_acc, val_accuracy, current_lr])
+
+    # update learning rate for next epoch based on block decay scheme
+    if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
+        current_lr = current_lr * block_decay
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
+
+    # update learning rate for next epoch based on fixed lr schedule
+    if fixed_lr and epoch+1 in fixed_lr_schedule:
+        current_lr = fixed_lr_schedule[epoch+1]
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
+
+    # update learning rate for next epoch based on loss penalty scheme
+    if decay_by_loss and epoch > 1 and prev_loss > train_loss:
+        current_lr = current_lr * decay_rate
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
 
     # Save the model weights for the top 20 val accuracy
     save = False
