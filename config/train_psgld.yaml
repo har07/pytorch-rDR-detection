@@ -27,7 +27,7 @@ pSGLD:
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
-  batch_size: 64
+  batch_size: 32
   mean: [0.485, 0.456, 0.406]
   std: [0.229, 0.224, 0.225]
   train_dataset: /kaggle/tmp/ddr-clahe/train
