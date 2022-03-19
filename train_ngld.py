@@ -172,6 +172,12 @@ if optimizer_name in config:
         if v or v == False:
             optim_params[k] = v
 
+fixed_lr = False
+fixed_lr_schedule = {}
+if '_fixed_lr' in config[optimizer_name]:
+    fixed_lr = config['_fixed_lr']
+    fixed_lr_schedule = config['_fixed_lr_schedule']
+
 session_id = f"{optimizer_name}_{session_id_prefix}"
 print('optimizer: ', optimizer_name)
 print('optimizer params: ', optim_params)
@@ -298,6 +304,13 @@ for epoch in range(start_epoch, limit_epoch+1):
         current_lr = current_lr * block_decay
         if not lr_param:
             optimizer = lr_setter.update_optimizer(optimizer, current_lr)
+
+    # update learning rate for next epoch based on fixed lr schedule
+    if fixed_lr and epoch+1 in fixed_lr_schedule:
+        current_lr = fixed_lr_schedule[epoch+1]
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
+    
 
     # inspect training data composition in first epoch
     eval_verbose = False
