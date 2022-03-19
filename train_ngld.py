@@ -146,7 +146,7 @@ else:
 torchv_models = ['resnet','inception_torch']
 if model_type in torchv_models:
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 1)
+    model.fc = nn.Linear(num_ftrs, 3)
 
 model = model.cuda()
 
