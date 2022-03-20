@@ -221,8 +221,8 @@ def load_predefined_train_test_idx(datadir, train_idxs=[], test_idxs=[], batch_s
     train_subsampler = torch.utils.data.SubsetRandomSampler(train_idxs)
     test_subsampler = torch.utils.data.SubsetRandomSampler(test_idxs)
 
-    trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, sampler=train_subsampler)
-    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, sampler=test_subsampler)
+    trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sampler=train_subsampler)
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, sampler=test_subsampler)
 
     return trainloader, testloader
 
