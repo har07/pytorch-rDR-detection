@@ -151,7 +151,9 @@ def write_board(writer, epoch, tloss, tacc, acc, lr):
 
 ds = torchvision.datasets.ImageFolder(train_datadir)
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
-for fold, (train_idxs, test_idxs) in enumerate(kfold.split(ds)):
+kfold_x = np.zeros(len(ds.targets))
+kfold_y = ds.targets
+for fold, (train_idxs, test_idxs) in enumerate(kfold.split(kfold_x, kfold_y)):
     print(f'FOLD {fold}')
     print('train:', len(train_idxs))
     print('test:', len(test_idxs))   
