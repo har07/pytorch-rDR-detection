@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 40
-max_session_epoch: 40
+max_epoch: 30
+max_session_epoch: 30
 block_size: 40
 block_decay: .5
 optimizer: Adam
@@ -11,12 +11,14 @@ Adam:
   lr: 1.e-3
   _decay_by_loss: False
   _decay_rate: .1
+  _fixed_lr: False
+  _fixed_lr_schedule:
 dataset:
   augmentation: TEAM_o_O
   color_jitter: False
   batch_size: 64
-  mean: [0.4064, 0.2913, 0.1175]
-  std: [0.3019, 0.2125, 0.1318]
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
   train_dataset: /kaggle/tmp/ddr-clahe/train
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid

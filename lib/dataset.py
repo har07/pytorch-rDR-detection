@@ -16,7 +16,14 @@ CONTRAST_UPPER = 1.5
 # augmentation scheme: VOETS_2019 | FILOS_2019 | TEAM_o_O
 def get_augmentation(scheme, color_jitter=True, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
     operations = []
-    if scheme == 'VOETS_2019':
+    if scheme == 'PARADISA_2022':
+        operations = [
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
+        ]
+    elif scheme == 'VOETS_2019':
         operations = [
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -201,6 +208,23 @@ def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return testloader
+
+def load_predefined_train_test_idx(datadir, train_idxs=[], test_idxs=[], batch_size=128, \
+         mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5], augmentation='FILOS_2019', color_jitter=False):
+    train_transforms = get_augmentation(augmentation, color_jitter=color_jitter, mean=mean, std=std)
+    test_transforms = transforms.Compose([
+                                     transforms.ToTensor(),
+                                     transforms.Normalize(mean, std)])
+    train_data = datasets.ImageFolder(datadir, transform=train_transforms)
+    test_data = datasets.ImageFolder(datadir, transform=test_transforms)
+
+    train_subsampler = torch.utils.data.SubsetRandomSampler(train_idxs)
+    test_subsampler = torch.utils.data.SubsetRandomSampler(test_idxs)
+
+    trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, sampler=train_subsampler)
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, sampler=test_subsampler)
+
+    return trainloader, testloader
 
 def calculate_mean_std(datadir):
     # source: https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/39
