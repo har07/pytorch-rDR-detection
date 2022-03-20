@@ -162,10 +162,10 @@ for fold, (train_idxs, test_idxs) in enumerate(kfold.split(kfold_x, kfold_y)):
     print(f'FOLD {fold}', file=f)
     print('--------------------------------', file=f)
 
-    train_dataset, val_dataset = load_predefined_train_test_idx(train_datadir, batch_size=batch_size, \
+    train_dataset, val_dataset = load_predefined_train_test_idx(train_datadir, train_idxs=train_idxs, \
+                                                    test_idxs=test_idxs, batch_size=batch_size, \
                                                     mean=dataset_mean, std=dataset_std, augmentation=augmentation, \
-                                                    color_jitter=color_jitter, weighted_sampler=oversampling, \
-                                                    count_samples=count_samples)
+                                                    color_jitter=color_jitter)
 
     model = None
     if model_type == 'resnet':
