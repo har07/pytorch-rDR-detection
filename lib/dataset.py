@@ -107,25 +107,29 @@ class ImbalancedDatasetSampler(torch.utils.data.sampler.Sampler):
     def __len__(self):
         return self.num_samples
 
-def load_predefined_train_test(traindir, testdir, bs=50, valid_bs=57):
-    train_transforms = transforms.Compose(
-        [
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(
-                brightness=BRIGHTNESS_MAX_DELTA,
-                contrast=(CONTRAST_LOWER, CONTRAST_UPPER),
-                saturation=(SATURATION_LOWER,SATURATION_UPPER),
-                hue=HUE_MAX_DELTA),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5)) # normalize to range [-1,1]
-        ])  
+def load_predefined_train_test(traindir, testdir, batch_size=128, \
+        weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5], \
+        augmentation='FILOS_2019', color_jitter=False):
+    train_transforms = get_augmentation(augmentation, color_jitter=color_jitter, mean=mean, std=std)
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),
-                                     transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))]) # normalize to range [-1,1]
+                                     transforms.Normalize(mean, std)])
     train_data = datasets.ImageFolder(traindir, transform=train_transforms)
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
-    trainloader = torch.utils.data.DataLoader(train_data, batch_size=bs, shuffle=True)
-    testloader = torch.utils.data.DataLoader(test_data, batch_size=valid_bs, shuffle=True)
+    trainloader = None
+    if weighted_sampler:
+        # ref: https://discuss.pytorch.org/t/how-to-implement-oversampling-in-cifar-10/16964/2
+        target = train_data.targets
+        class_sample_count = np.unique(target, return_counts=True)[1]
+        weight = 1. / class_sample_count
+        samples_weight = weight[target]
+        samples_weight = torch.from_numpy(samples_weight)
+        sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_samples)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sampler=sampler)
+    else:
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+        
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return trainloader, testloader
 
 def load_split_train_test(datadir, bs=50, valid_bs=57, valid_size=.2, balanced=False):

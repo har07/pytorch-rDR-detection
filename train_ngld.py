@@ -135,15 +135,18 @@ elif model_type == 'inception_resnet':
     model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'xception':
     model = timm.create_model('xception', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+elif model_type == 'inception_torch':
+    model = torchvision.models.inception_v3(pretrained=pretrained, progress=True, aux_logits=False)
 else:
     model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
 
 # Reset the layer with the same amount of neurons as labels.
 
-if model_type == 'resnet':
+torchv_models = ['resnet','inception_torch']
+if model_type in torchv_models:
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 1)
+    model.fc = nn.Linear(num_ftrs, 3)
 
 model = model.cuda()
 
@@ -168,6 +171,12 @@ if optimizer_name in config:
         v = optim_params2[k]
         if v or v == False:
             optim_params[k] = v
+
+fixed_lr = False
+fixed_lr_schedule = {}
+if '_fixed_lr' in config[optimizer_name]:
+    fixed_lr = config[optimizer_name]['_fixed_lr']
+    fixed_lr_schedule = config[optimizer_name]['_fixed_lr_schedule']
 
 session_id = f"{optimizer_name}_{session_id_prefix}"
 print('optimizer: ', optimizer_name)
@@ -257,6 +266,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         target = target.cuda()
         optimizer.zero_grad()
         output = model(data)
+        # if not model_type in torchv_models:
         output = F.log_softmax(output, dim=1)
         if epoch == 1:
             accum_target.extend(target.cpu().numpy())
@@ -289,12 +299,6 @@ for epoch in range(start_epoch, limit_epoch+1):
     elapsed = time.time() - t0
     durations.append(elapsed)
 
-    # update learning rate for next epoch based on block decay scheme
-    if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
-        current_lr = current_lr * block_decay
-        if not lr_param:
-            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
-
     # inspect training data composition in first epoch
     eval_verbose = False
     if epoch == 1:
@@ -306,12 +310,6 @@ for epoch in range(start_epoch, limit_epoch+1):
     val_accuracy, _ = lib.evaluation.evaluate(model, val_dataset)
     train_loss = np.mean(loss.item())
     train_acc = np.mean(accuracy)
-
-    # update learning rate for next epoch based on loss penalty scheme
-    if decay_by_loss and epoch > 1 and prev_loss > train_loss:
-        current_lr = current_lr * decay_rate
-        if not lr_param:
-            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
     
     # remember current train loss
     prev_loss = train_loss
@@ -322,6 +320,24 @@ for epoch in range(start_epoch, limit_epoch+1):
     write_board(epoch, train_loss, train_acc, val_accuracy, current_lr)
     write_csv(session_id+".csv", data=[epoch, elapsed, train_loss, 
                                         train_acc, val_accuracy, current_lr])
+
+    # update learning rate for next epoch based on block decay scheme
+    if block_size > 0 and block_decay > 0 and ((epoch) % block_size) == 0:
+        current_lr = current_lr * block_decay
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
+
+    # update learning rate for next epoch based on fixed lr schedule
+    if fixed_lr and epoch+1 in fixed_lr_schedule:
+        current_lr = fixed_lr_schedule[epoch+1]
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
+
+    # update learning rate for next epoch based on loss penalty scheme
+    if decay_by_loss and epoch > 1 and prev_loss > train_loss:
+        current_lr = current_lr * decay_rate
+        if not lr_param:
+            optimizer = lr_setter.update_optimizer(optimizer, current_lr)
 
     # Save the model weights for the top 20 val accuracy
     save = False
