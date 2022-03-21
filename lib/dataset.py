@@ -226,6 +226,36 @@ def load_predefined_train_test_idx(datadir, train_idxs=[], test_idxs=[], batch_s
 
     return trainloader, testloader
 
+def load_custom_weights(heldoutdir, testdir, traindir, batch_size=128, \
+        weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5], \
+        augmentation='FILOS_2019', color_jitter=False, custom_weights=[]):
+    train_transforms = get_augmentation(augmentation, color_jitter=color_jitter, mean=mean, std=std)
+    test_transforms = transforms.Compose([
+                                     transforms.ToTensor(),
+                                     transforms.Normalize(mean, std)])
+
+    heldoutloader, testloader, trainloader = None, None, None
+    if heldoutdir != '':
+        heldout_data = datasets.ImageFolder(heldoutdir, transform=train_transforms)
+        heldoutloader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
+
+    if testdir != '':
+        test_data = datasets.ImageFolder(testdir, transform=test_transforms)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
+
+    if traindir != '':
+        train_data = datasets.ImageFolder(traindir, transform=train_transforms)
+        if weighted_sampler:
+            target = train_data.targets
+            samples_weight = custom_weights[target]
+            samples_weight = torch.from_numpy(samples_weight)
+            sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_samples)
+            trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sampler=sampler)
+        else:
+            trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+
+    return heldoutloader, testloader, trainloader
+
 def calculate_mean_std(datadir):
     # source: https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/39
 
