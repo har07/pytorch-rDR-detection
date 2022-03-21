@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 30
-max_session_epoch: 30
+max_epoch: 60
+max_session_epoch: 60
 block_size: 40
 block_decay: .5
 optimizer: pSGLD
@@ -20,8 +20,16 @@ pSGLD:
   _fixed_lr: True
   _fixed_lr_schedule:
     5: 1.e-5
-    15: 5.e-6
-    25: 1.e-6
+    10: 1.e-4
+    15: 1.e-5
+    20: 5.e-5
+    25: 5.e-6
+    30: 5.e-5
+    35: 5.e-6
+    40: 1.e-5
+    45: 1.e-6
+    50: 1.e-5
+    55: 1.e-6
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
