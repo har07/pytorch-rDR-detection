@@ -256,6 +256,12 @@ def load_custom_weights(heldoutdir, testdir, traindir, batch_size=128, \
 
     return heldoutloader, testloader, trainloader
 
+def get_team_o_O_weights(r, w_0, w_f, t):
+    # w_0 = np.array([1.36,14.4,6.64,40.2,49.8])
+    # w_f = np.array([1,2,2,2,2])
+    # r = .975
+   return r**(t-1) * w_0 + (1-r**(t-1)) * w_f
+
 def calculate_mean_std(datadir):
     # source: https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/39
 

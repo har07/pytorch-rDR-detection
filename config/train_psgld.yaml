@@ -9,7 +9,7 @@ drop_rate: .0
 pretrained: True
 pSGLD:
   lr: 1.e-4
-  train_size: 15033 # 1373
+  train_size: 9396 # 15033 # 1373
   alpha: .95
   eps: 5.e-5
   num_burn_in_steps: 300
@@ -34,10 +34,14 @@ dataset:
   valid_dataset: /kaggle/tmp/ddr-clahe/test
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
   oversampling: True
-  count_samples: 15033 # 5011x3 (number samples from the largest class i.e class 0 in training+validation dataset, times number of classes)
-  # count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
+  w_0: [1.36,6.64,49.8]
+  w_f: [1,2,2]
+  r: .975
+  # count_samples: 15033 # 5011x3 (number samples from the largest class i.e class 0 in training+validation dataset, times number of classes)
+  count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
-  samples_per_class: [5011,4275,731]
+  # samples_per_class: [5011,4275,731]
+  samples_per_class: [3132,2671,456]
   method: none # ins | isns | ens | none
   beta: 0.99 # only valid for ens
   per_minibatch: False
