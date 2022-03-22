@@ -76,8 +76,8 @@ block_size = config['block_size']
 block_decay = config['block_decay']
 
 oversampling = config['dataset']['oversampling']
-w_0 = config['dataset']['w_0']
-w_f = config['dataset']['w_f']
+w_0 = np.array(config['dataset']['w_0'])
+w_f = np.array(config['dataset']['w_f'])
 r = config['dataset']['r']
 count_samples = config['dataset']['count_samples']
 augmentation = config['dataset']['augmentation']
