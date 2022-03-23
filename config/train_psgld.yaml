@@ -27,7 +27,7 @@ pSGLD:
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
-  batch_size: 16
+  batch_size: 32
   mean: [0.485, 0.456, 0.406]
   std: [0.229, 0.224, 0.225]
   train_dataset: /kaggle/tmp/ddr-clahe/train
@@ -35,8 +35,8 @@ dataset:
   heldout_dataset: /kaggle/tmp/ddr-clahe/valid
   oversampling: True
   w_0: [1.36,6.64,49.8]
-  w_f: [1,2,2]
-  r: .975
+  w_f: [1,1.2,2]
+  r: .8
   # count_samples: 15033 # 5011x3 (number samples from the largest class i.e class 0 in training+validation dataset, times number of classes)
   count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
