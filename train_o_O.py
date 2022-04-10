@@ -341,6 +341,7 @@ for epoch in range(start_epoch, limit_epoch+1):
             optimizer = lr_setter.update_optimizer(optimizer, current_lr)
 
     # Save the model weights for the last 20 epochs
+    save = False
     if num_epochs - epoch < 20:
         save = True
         last_epochs.append({'acc':val_accuracy, 'epoch':epoch})
