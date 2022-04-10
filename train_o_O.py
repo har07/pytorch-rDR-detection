@@ -118,21 +118,22 @@ if limit_epoch == 0:
     limit_epoch = num_epochs
 
 # Base model InceptionV3 with global average pooling.
+num_classes = len(samples_per_class)
 model = None
 if model_type == 'resnet':
     model = torchvision.models.resnet101(pretrained=pretrained, progress=True)
 elif model_type == 'densenet':
-    model = timm.create_model('densenet121', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('densenet121', pretrained=pretrained, num_classes=num_classes, drop_rate=drop_rate)
 elif model_type == 'inception_v3':
-    model = timm.create_model('inception_v3', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('inception_v3', pretrained=pretrained, num_classes=num_classes, drop_rate=drop_rate)
 elif model_type == 'inception_resnet':
-    model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=num_classes, drop_rate=drop_rate)
 elif model_type == 'xception':
-    model = timm.create_model('xception', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('xception', pretrained=pretrained, num_classes=num_classes, drop_rate=drop_rate)
 elif model_type == 'inception_torch':
     model = torchvision.models.inception_v3(pretrained=pretrained, progress=True, aux_logits=False)
 else:
-    model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
+    model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=num_classes, drop_rate=drop_rate)
 
 
 # Reset the layer with the same amount of neurons as labels.
@@ -140,7 +141,7 @@ else:
 torchv_models = ['resnet','inception_torch']
 if model_type in torchv_models:
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 3)
+    model.fc = nn.Linear(num_ftrs, num_classes)
 
 model = model.cuda()
 
@@ -245,7 +246,7 @@ if checkpoint != "":
     optimizer.load_state_dict(chk['optimizer_state_dict'])
     model.load_state_dict(chk['model_state_dict'])
 
-weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
+weights = get_class_weights(class_weight, num_classes, samples_per_class, class_weight_beta)
 prev_loss = 0.0
 for epoch in range(start_epoch, limit_epoch+1):
     custom_weights = get_team_o_O_weights(r, w_0, w_f, epoch)
@@ -273,8 +274,8 @@ for epoch in range(start_epoch, limit_epoch+1):
             accum_target.extend(target.cpu().numpy())
         
         if per_minibatch:
-            samples_per_class = batch_samples_per_class(len(samples_per_class), target)
-            weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
+            samples_per_class = batch_samples_per_class(num_classes, target)
+            weights = get_class_weights(class_weight, num_classes, samples_per_class, class_weight_beta)
 
         loss = F.nll_loss(output, target, weight=torch.Tensor(weights).cuda())
         loss.backward()    # calc gradients
