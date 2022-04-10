@@ -40,7 +40,7 @@ dataset:
   # count_samples: 15033 # 5011x3 (number samples from the largest class i.e class 0 in training+validation dataset, times number of classes)
   count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
 class_weight:
-  samples_per_class: [3132,2671,456]
+  samples_per_class: [3132,315,2238,118,456]
   method: none # ins | isns | ens | none
   beta: 0.99 # only valid for ens
   per_minibatch: False
