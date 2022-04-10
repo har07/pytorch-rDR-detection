@@ -11,12 +11,15 @@ from lib.preprocess import resize_and_center_fundus
 parser = argparse.ArgumentParser(description='Preprocess DDR data set.')
 parser.add_argument("--data_dir", help="Directory where DDR Grading data resides.",
                     default="data/ddr")
+parser.add_argument("--size", help="Target image size after preprocessing.",
+                    default=299)
 
 args = parser.parse_args()
 data_dir = str(args.data_dir)
+image_size = int(args.size)
 output_dir = 'preproc'
 
-data_roles = ['test', 'valid']
+data_roles = ['train', 'test', 'valid']
 
 for role in data_roles:
     # Create directories for grades.
@@ -54,7 +57,7 @@ for role in data_roles:
             #  diameter of fundus to 299 pixels and crop the edges.
             res = resize_and_center_fundus(save_path=tmp_path,
                                         image_path=im_path,
-                                        diameter=299, verbosity=0)
+                                        diameter=image_size, verbosity=0)
 
             # Status message.
             msg = "\r- Preprocessing pair of image: {0:>7}".format(i+1)

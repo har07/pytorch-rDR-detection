@@ -21,7 +21,7 @@ sys.path.insert(1, '../')
 import lib.metrics
 import lib.dataset
 import lib.evaluation
-from lib.dataset import load_predefined_heldout_train_test
+from lib.dataset import load_custom_weights, get_team_o_O_weights
 from lib.weights import get_class_weights, batch_samples_per_class
 from sgld.sgld_optim import SGLD
 from sgld.psgld_optim import pSGLD
@@ -76,6 +76,9 @@ block_size = config['block_size']
 block_decay = config['block_decay']
 
 oversampling = config['dataset']['oversampling']
+w_0 = np.array(config['dataset']['w_0'])
+w_f = np.array(config['dataset']['w_f'])
+r = config['dataset']['r']
 count_samples = config['dataset']['count_samples']
 augmentation = config['dataset']['augmentation']
 color_jitter = config['dataset']['color_jitter']
@@ -114,31 +117,22 @@ limit_epoch = config['max_session_epoch']
 if limit_epoch == 0:
     limit_epoch = num_epochs
 
-train_dataset = None
-val_dataset = None
-
-_, val_dataset, train_dataset = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
-                                                    train_datadir, batch_size=batch_size, \
-                                                    mean=dataset_mean, std=dataset_std, augmentation=augmentation, \
-                                                    color_jitter=color_jitter, weighted_sampler=oversampling, \
-                                                    count_samples=count_samples)
-
 # Base model InceptionV3 with global average pooling.
 model = None
 if model_type == 'resnet':
     model = torchvision.models.resnet101(pretrained=pretrained, progress=True)
 elif model_type == 'densenet':
-    model = timm.create_model('densenet121', pretrained=pretrained, num_classes=5, drop_rate=drop_rate)
+    model = timm.create_model('densenet121', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'inception_v3':
-    model = timm.create_model('inception_v3', pretrained=pretrained, num_classes=5, drop_rate=drop_rate)
+    model = timm.create_model('inception_v3', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'inception_resnet':
-    model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=5, drop_rate=drop_rate)
+    model = timm.create_model('inception_resnet_v2', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'xception':
-    model = timm.create_model('xception', pretrained=pretrained, num_classes=5, drop_rate=drop_rate)
+    model = timm.create_model('xception', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 elif model_type == 'inception_torch':
     model = torchvision.models.inception_v3(pretrained=pretrained, progress=True, aux_logits=False)
 else:
-    model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=5, drop_rate=drop_rate)
+    model = timm.create_model('inception_v4', pretrained=pretrained, num_classes=3, drop_rate=drop_rate)
 
 
 # Reset the layer with the same amount of neurons as labels.
@@ -146,7 +140,7 @@ else:
 torchv_models = ['resnet','inception_torch']
 if model_type in torchv_models:
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 5)
+    model.fc = nn.Linear(num_ftrs, 3)
 
 model = model.cuda()
 
@@ -254,6 +248,13 @@ if checkpoint != "":
 weights = get_class_weights(class_weight, len(samples_per_class), samples_per_class, class_weight_beta)
 prev_loss = 0.0
 for epoch in range(start_epoch, limit_epoch+1):
+    custom_weights = get_team_o_O_weights(r, w_0, w_f, epoch)
+    _, val_dataset, train_dataset = load_custom_weights(heldout_datadir, valid_datadir, \
+                                                train_datadir, batch_size=batch_size, \
+                                                mean=dataset_mean, std=dataset_std, augmentation=augmentation, \
+                                                color_jitter=color_jitter, weighted_sampler=True, \
+                                                count_samples=count_samples, custom_weights=custom_weights)
+
     t0 = time.time()
     model.train()
     epoch_loss = 0.0
