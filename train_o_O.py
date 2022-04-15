@@ -249,7 +249,9 @@ if checkpoint != "":
 weights = get_class_weights(class_weight, num_classes, samples_per_class, class_weight_beta)
 prev_loss = 0.0
 for epoch in range(start_epoch, limit_epoch+1):
-    custom_weights = get_team_o_O_weights(r, w_0, w_f, epoch)
+    custom_weights = np.array([1.0] * num_classes)
+    if oversampling:
+        custom_weights = get_team_o_O_weights(r, w_0, w_f, epoch)
     _, val_dataset, train_dataset = load_custom_weights(heldout_datadir, valid_datadir, \
                                                 train_datadir, batch_size=batch_size, \
                                                 mean=dataset_mean, std=dataset_std, augmentation=augmentation, \
