@@ -1,0 +1,43 @@
+seed: 1
+max_epoch: 30
+max_session_epoch: 30
+block_size: 40
+block_decay: .5
+optimizer: ASGLD
+model: inception # inception | resnet | densenet | inception_v3 | inception_resnet | xception | inception_torch
+drop_rate: .0
+pretrained: True
+ASGLD:
+  lr: 1.e-1
+  momentum: .9
+  weight_decay: 5.e-4
+  eps: 1.e-6
+  noise: 1.e-2
+  _decay_by_loss: False
+  _decay_rate: .1
+  _fixed_lr: True
+  _fixed_lr_schedule:
+    5: 1.e-2
+    10: 1.e-1
+    15: 1.e-2
+    20: 5.e-2
+    25: 5.e-3
+dataset:
+  augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
+  color_jitter: False
+  batch_size: 32
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  train_dataset: /kaggle/tmp/ddr-clahe/train
+  valid_dataset: /kaggle/tmp/ddr-clahe/test
+  heldout_dataset: /kaggle/tmp/ddr-clahe/valid
+  oversampling: True
+  w_0: [1.36,6.64,49.8]
+  w_f: [1,1.2,2]
+  r: .975
+  count_samples: 9396 # 3132x3 (number samples from the largest class i.e class 0 in training dataset, times number of classes)
+class_weight:
+  samples_per_class: [3132,2671,456]
+  method: none # ins | isns | ens | none
+  beta: 0.99 # only valid for ens
+  per_minibatch: False
