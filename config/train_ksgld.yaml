@@ -23,11 +23,11 @@ KSGLD:
   _decay_rate: .1
   _fixed_lr: True
   _fixed_lr_schedule:
-    5: 1.e-5
-    10: 1.e-4
-    15: 1.e-5
-    20: 5.e-5
-    25: 5.e-6
+    5: 3.2e-3
+    10: 3.2e-2
+    15: 3.2e-3
+    20: 8.2e-3
+    25: 8.2e-4
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
