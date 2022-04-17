@@ -24,10 +24,10 @@ EKSGLD:
   _fixed_lr: True
   _fixed_lr_schedule:
     5: 1.e-5
-    10: 5.e-3
-    15: 5.e-4
-    20: 1.e-3
-    25: 1.e-4
+    10: 1.e-4
+    15: 1.e-5
+    20: 5.e-5
+    25: 5.e-6
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
