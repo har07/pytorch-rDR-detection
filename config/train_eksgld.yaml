@@ -8,7 +8,7 @@ model: inception # inception | resnet | densenet | inception_v3 | inception_resn
 drop_rate: .0
 pretrained: True
 EKSGLD:
-  lr: 5.e-3  # from MNIST/CIFAR exp.: 5.e-3 #from eypecs exp: 1.e-2
+  lr: 1.e-4  # from MNIST/CIFAR exp.: 5.e-3 #from eypecs exp: 1.e-2
   train_size: 9396
   num_burn_in_steps: 600
   add_noise: True
@@ -23,7 +23,7 @@ EKSGLD:
   _decay_rate: .1
   _fixed_lr: True
   _fixed_lr_schedule:
-    5: 5.e-4
+    5: 1.e-5
     10: 5.e-3
     15: 5.e-4
     20: 1.e-3
