@@ -24,7 +24,7 @@ EKSGLD:
   _fixed_lr: True
   _fixed_lr_schedule:
     5: 1.e-5
-    10: 1.e-4
+    10: 1.e-5
     15: 1.e-5
     20: 5.e-5
     25: 5.e-6
