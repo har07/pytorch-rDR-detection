@@ -8,7 +8,7 @@ model: inception # inception | resnet | densenet | inception_v3 | inception_resn
 drop_rate: .0
 pretrained: True
 SGLD:
-  lr: 1.e-2
+  lr: 2.e-1
   train_size: 9396
   lr_decay: 2.e-2
   weight_decay: 0.
@@ -17,11 +17,11 @@ SGLD:
   _decay_rate: .1
   _fixed_lr: True
   _fixed_lr_schedule:
-    5: 1.e-3
-    10: 1.e-2
-    15: 1.e-3
-    20: 5.e-3
-    25: 5.e-4
+    5: 2.e-4
+    10: 2.e-1
+    15: 2.e-4
+    20: 7.e-3
+    25: 7.e-4
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
