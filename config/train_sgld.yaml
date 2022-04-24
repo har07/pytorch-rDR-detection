@@ -10,9 +10,9 @@ pretrained: True
 SGLD:
   lr: 2.e-1
   train_size: 9396
-  lr_decay: 2.e-2
+  lr_decay: 0.
   weight_decay: 0.
-  num_burn_in_steps: 600
+  num_burn_in_steps: 300
   _decay_by_loss: False
   _decay_rate: .1
   _fixed_lr: True
