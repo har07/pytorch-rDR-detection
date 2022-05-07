@@ -24,9 +24,7 @@ import datetime
 seed = 1
 batch_size=32
 
-heldout_datadir='/kaggle/tmp/eyepacs/eyepacs-multiclass/train'
 valid_datadir='/kaggle/tmp/eyepacs/eyepacs-multiclass/test'
-train_datadir='/kaggle/tmp/eyepacs/eyepacs-multiclass/heldout'
 output_dir='/kaggle/working'
 
 parser = argparse.ArgumentParser(
@@ -82,12 +80,7 @@ for optimizer in optimizers:
     model = model.cuda()
 
     # load data based on param `dataset`
-    val_dataset = None
-    if dataset == 'eyepacs':
-        _, val_dataset, _ = load_predefined_heldout_train_test(heldout_datadir, valid_datadir, \
-                                                    train_datadir, batch_size=batch_size)
-    else:
-        val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size)
+    val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size)
 
     models = []
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]
