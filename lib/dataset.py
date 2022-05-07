@@ -202,6 +202,8 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     return heldoutloader, testloader, trainloader
 
 def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
+    """Return just the test loader."""
+
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),
                                      transforms.Normalize(mean, std)]) # normalize to range [-1,1]
@@ -229,6 +231,16 @@ def load_predefined_train_test_idx(datadir, train_idxs=[], test_idxs=[], batch_s
 def load_custom_weights(heldoutdir, testdir, traindir, batch_size=128, \
         weighted_sampler=False, count_samples=0, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5], \
         augmentation='FILOS_2019', color_jitter=False, custom_weights=[]):
+    """Return heldout-test-train loader pairs.
+
+    Arguments:
+        weighted_sampler: (bool, optional): Flag to enable/disable custom_weights.
+        count_samples: (int, optional): Total number of samples to be drawn when doing oversampling.
+        custom_weights (np.array, optional): Custom weight for oversampling. Only applied to train loader.
+        augmentation: (string, optional): Augmentation methods to be applied to train loader. 
+            Must be one of VOETS_2019 | FILOS_2019 | TEAM_o_O
+        color_jitter: (bool, optional): Flag to enable/disable color jitter augmentation to train loader.
+    """
     train_transforms = get_augmentation(augmentation, color_jitter=color_jitter, mean=mean, std=std)
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),

@@ -84,8 +84,8 @@ for optimizer in optimizers:
     models = []
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]
 
-    # only use last checkpoint if SGD
-    if optimizer == "SGD":
+    # only use last checkpoint for non SGLD:
+    if optimizer in ["SGD","RMSProp","Adam"]:
         path_idxs = [nmodel_max]
         nmodel = 1
 
