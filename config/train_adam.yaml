@@ -11,7 +11,6 @@ Adam:
   lr: 4.e-4
   _decay_by_loss: False
   _decay_rate: .1
-  _fixed_lr: False
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
