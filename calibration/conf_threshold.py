@@ -30,11 +30,11 @@ parser = argparse.ArgumentParser(
                     description="Evaluate confidence calibration of neural network for ")
 parser.add_argument("-d", "--dir",
                     help="directory location containing pretrained models")
-parser.add_argument("-m", "--model",
-                    help="model architecture")
 parser.add_argument("-o", "--optimizers", default="",
                     help="optimizer")
 parser.add_argument("-n", "--nmodel", default=10,
+                    help="number of models")
+parser.add_argument("-max", "--model_max_idx", default=100,
                     help="number of models")
 parser.add_argument("-ds", "--dataset",
                     help="dataset")
@@ -47,13 +47,12 @@ parser.add_argument("-out", "--output_dir", default=output_dir,
 
 args = parser.parse_args()
 dir_path = str(args.dir)
-model_arch = str(args.model)
 dataset = str(args.dataset)
 valid_datadir = str(args.val_dir_param)
 optimizers = str(args.optimizers)
 nmodel = int(args.nmodel)
 rotate = int(args.rotate)
-nmodel_max = 10
+nmodel_max = int(args.model_max_idx)
 
 optimizers = optimizers.split(",")
 
@@ -76,7 +75,6 @@ entropies = {} # key=optimizer, value=list of entropy
 session_id_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 stats_path = f'{output_dir}/stats_{session_id_prefix}.pt'
 f = open(f'{output_dir}/stats_{session_id_prefix}.txt', 'w')
-print(f'model: {model_arch}', file=f)
 print(f'dataset: {dataset}', file=f)
 print(f'path: {dir_path}', file=f)
 print(f'rotated: {rotate}', file=f)
