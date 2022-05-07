@@ -11,6 +11,7 @@ import argparse
 import os
 import glob
 import math
+import timm
 
 import metrics
 import visualization
@@ -81,6 +82,9 @@ print(f'rotated: {rotate}', file=f)
 print(f'statistics: {stats_path}', file=f)
 
 for optimizer in optimizers:
+    model = timm.create_model('inception_v4', pretrained=False, num_classes=3)
+    model = model.cuda()
+
     # load data based on param `dataset`
     val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size)
 
