@@ -27,6 +27,7 @@ batch_size=32
 heldout_datadir='/kaggle/tmp/eyepacs/eyepacs-multiclass/train'
 valid_datadir='/kaggle/tmp/eyepacs/eyepacs-multiclass/test'
 train_datadir='/kaggle/tmp/eyepacs/eyepacs-multiclass/heldout'
+output_dir='/kaggle/working'
 
 parser = argparse.ArgumentParser(
                     description="Evaluate confidence calibration of neural network for ")
@@ -44,6 +45,8 @@ parser.add_argument("-r", "--rotate", default=0,
                     help="rotate data")
 parser.add_argument("-valdir", "--val_dir_param", default=valid_datadir,
                     help="directory containing validation data")
+parser.add_argument("-out", "--output_dir", default=output_dir,
+                    help="directory to store output plots")
 
 args = parser.parse_args()
 dir_path = str(args.dir)
@@ -62,7 +65,7 @@ random.seed(seed)
 np.random.seed(seed)
 
 session_id_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-f = open(f'/kaggle/working/plots/evaluation_{session_id_prefix}.txt', 'w+')
+f = open(f'{output_dir}/plots/evaluation_{session_id_prefix}.txt', 'w+')
 print(f'dataset: {dataset}', file=f)
 print(f'path: {dir_path}', file=f)
 print(f'rotated: {rotate}', file=f)
@@ -193,15 +196,15 @@ for optimizer in optimizers:
 
     conf_hist = visualization.ConfidenceHistogram()
     plt_test_soft = conf_hist.plot(pred_probs_soft_np,labels_np,title=f"",logits=False)
-    plt_test_soft.savefig(f"/kaggle/working/plots/{optimizer}_conf_histogram_{nmodel}models.png", bbox_inches='tight')
-    plt_test_soft.savefig(f"/kaggle/working/plots/{optimizer}_conf_histogram_{nmodel}models.pdf", bbox_inches='tight')
+    plt_test_soft.savefig(f"{output_dir}/plots/{optimizer}_conf_histogram_{nmodel}models.png", bbox_inches='tight')
+    plt_test_soft.savefig(f"{output_dir}/plots/{optimizer}_conf_histogram_{nmodel}models.pdf", bbox_inches='tight')
     # plt_test_soft.show()
     plt_test_soft.clf()
 
     rel_diagram = visualization.ReliabilityDiagram()
     plt_test_2_soft = rel_diagram.plot(pred_probs_soft_np,labels_np,title=f"ECE={ece_score}",logits=False)
-    plt_test_2_soft.savefig(f"/kaggle/working/plots/{optimizer}_rel_diagram_{nmodel}models.png", bbox_inches='tight')
-    plt_test_2_soft.savefig(f"/kaggle/working/plots/{optimizer}_rel_diagram_{nmodel}models.pdf", bbox_inches='tight')
+    plt_test_2_soft.savefig(f"{output_dir}/plots/{optimizer}_rel_diagram_{nmodel}models.png", bbox_inches='tight')
+    plt_test_2_soft.savefig(f"{output_dir}/plots/{optimizer}_rel_diagram_{nmodel}models.pdf", bbox_inches='tight')
     # plt_test_2_soft.show()
     plt_test_2_soft.clf()
 
