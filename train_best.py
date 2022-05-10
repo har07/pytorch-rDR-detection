@@ -60,6 +60,8 @@ parser.add_argument("-y", "--yaml",
                     default=default_yaml)
 parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
+parser.add_argument("-sd", "--seed", default="",
+                    help="Random seed")
 
 args = parser.parse_args()
 save_model_path = str(args.save_model_path)
@@ -67,6 +69,7 @@ save_summaries_dir = str(args.save_summaries_dir)
 is_verbose = bool(args.verbose)
 yaml_path = str(args.yaml)
 checkpoint = str(args.checkpoint)
+seed = int(args.seed)
 
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
@@ -74,7 +77,7 @@ with open(yaml_path) as f:
 model_type = config['model']
 drop_rate = config['drop_rate']
 pretrained = config['pretrained']
-seed = config['seed']
+# seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
