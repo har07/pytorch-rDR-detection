@@ -362,7 +362,7 @@ for epoch in range(start_epoch, limit_epoch+1):
                 'epoch': epoch,
                 'steps': step,
                 'lr': current_lr
-            }, f"{save_model_path}/{session_id}.pt")
+            }, f"{save_model_path}/{session_id}_{seed}.pt")
 
     # If current training session reach limit epoch, stop training:
     if limit_epoch > 0 and epoch >= limit_epoch:
