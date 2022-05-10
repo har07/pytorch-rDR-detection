@@ -384,7 +384,7 @@ print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(dura
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}", file=f)
 
 last_acc = [t['acc'] for t in last_epochs]
-print(f"last 20 val accuracy (mean +/- std): {np.mean(last_acc):.2f} +/- {np.std(last_acc):.2f}")
-print(f"last 20 val accuracy (mean +/- std): {np.mean(last_acc):.2f} +/- {np.std(last_acc):.2f}", file=f)
+print(f"best val accuracy: {best_acc:.2f}")
+print(f"best val accuracy: {best_acc:.2f}", file=f)
 
 f.close()
