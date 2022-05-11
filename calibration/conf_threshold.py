@@ -45,6 +45,8 @@ parser.add_argument("-r", "--rotate", default=0,
                     help="rotate data")
 parser.add_argument("-out", "--output_dir", default=output_dir,
                     help="directory to store output plots")
+parser.add_argument("-mt", "--min_threshold", default=0.,
+                    help="minimum threshold to be applied")
 
 args = parser.parse_args()
 dir_path = str(args.dir)
@@ -54,6 +56,7 @@ optimizers = str(args.optimizers)
 nmodel = int(args.nmodel)
 rotate = int(args.rotate)
 nmodel_max = int(args.model_max_idx)
+min_threshold = float(args.min_threshold)
 
 optimizers = optimizers.split(",")
 
@@ -68,6 +71,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 thresholds = [.0, .1,.2, .3, .4, .5, .6, .7, .8, .9, 1.]
+thresholds = [x for x in thresholds if x >= min_threshold]
 accuracies = {} # key=optimizer, value=array of accuracies in threshold order
 aucs = {} # key=optimizer, value=array of auc_mu in threshold order
 samples = {} # key=optimizer, value=number of samples in threshold order
