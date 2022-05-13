@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 30
-max_session_epoch: 30
+max_epoch: 10
+max_session_epoch: 10
 block_size: 40
 block_decay: .5
 optimizer: SGLD
@@ -17,11 +17,11 @@ SGLD:
   _decay_rate: .1
   _fixed_lr: True
   _fixed_lr_schedule:
-    5: 2.e-4
-    10: 2.e-1
-    15: 2.e-4
-    20: 7.e-3
-    25: 7.e-4
+    5: 1.e-2
+    10: 1.e-1
+    15: 1.e-2
+    20: 5.e-2
+    25: 5.e-3
 dataset:
   augmentation: TEAM_o_O # VOETS_2019 | FILOS_2019 | TEAM_o_O
   color_jitter: False
