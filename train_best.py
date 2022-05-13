@@ -368,15 +368,15 @@ for epoch in range(start_epoch, limit_epoch+1):
     if limit_epoch > 0 and epoch >= limit_epoch:
         break
 
-# save params so that we can resume training
-torch.save({
-    'model_state_dict': model.state_dict(),
-    'optimizer_state_dict': optimizer.state_dict(),
-    'epoch': epoch,
-    'steps': step,
-    'durations': durations,
-    'last_epochs': last_epochs,
-}, f"{save_model_path}/{session_id}_chk.pt")
+# # save params so that we can resume training
+# torch.save({
+#     'model_state_dict': model.state_dict(),
+#     'optimizer_state_dict': optimizer.state_dict(),
+#     'epoch': epoch,
+#     'steps': step,
+#     'durations': durations,
+#     'last_epochs': last_epochs,
+# }, f"{save_model_path}/{session_id}_chk.pt")
 
 writer.flush()
 
