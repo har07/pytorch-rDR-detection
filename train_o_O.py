@@ -61,6 +61,8 @@ parser.add_argument("-sc", "--save_checkpoint", default=True,
                     help="Save checkpoint file")
 parser.add_argument("-sd", "--seed", default=-1,
                     help="Random seed")
+parser.add_argument("-n", "--nmodel", default=20,
+                    help="Save N models from the last N epoch")
 
 args = parser.parse_args()
 save_model_path = str(args.save_model_path)
@@ -69,6 +71,7 @@ is_verbose = bool(args.verbose)
 yaml_path = str(args.yaml)
 checkpoint = str(args.checkpoint)
 save_checkpoint = bool(args.save_checkpoint)
+nmodel = int(args.nmodel)
 
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
@@ -352,12 +355,12 @@ for epoch in range(start_epoch, limit_epoch+1):
         if not lr_param:
             optimizer = lr_setter.update_optimizer(optimizer, current_lr)
 
-    # Save the model weights for the last 20 epochs
+    # Save the model weights for the last N epochs
     save = False
-    if num_epochs - epoch < 20:
+    if num_epochs - epoch < nmodel:
         save = True
         last_epochs.append({'acc':val_accuracy, 'epoch':epoch})
-        if len(last_epochs) > 20:
+        if len(last_epochs) > nmodel:
             last_epochs.pop()
 
     if save:
@@ -390,7 +393,7 @@ print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(dura
 print(f"epoch duration (mean +/- std): {np.mean(durations):.2f} +/- {np.std(durations):.2f}", file=f)
 
 last_acc = [t['acc'] for t in last_epochs]
-print(f"last 20 val accuracy (mean +/- std): {np.mean(last_acc):.2f} +/- {np.std(last_acc):.2f}")
-print(f"last 20 val accuracy (mean +/- std): {np.mean(last_acc):.2f} +/- {np.std(last_acc):.2f}", file=f)
+print(f"last {nmodel} val accuracy (mean +/- std): {np.mean(last_acc):.2f} +/- {np.std(last_acc):.2f}")
+print(f"last {nmodel} val accuracy (mean +/- std): {np.mean(last_acc):.2f} +/- {np.std(last_acc):.2f}", file=f)
 
 f.close()
