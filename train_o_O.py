@@ -49,7 +49,7 @@ parser.add_argument("-sm", "--save_model_path",
 parser.add_argument("-ss", "--save_summaries_dir",
                     help="path to folder where summaries should be saved",
                     default=default_save_summaries_dir)
-parser.add_argument("-v", "--verbose",
+parser.add_argument("-v", "--verbose", action='store_true',
                     help="print log per batch instead of per epoch",
                     default=False)
 parser.add_argument("-y", "--yaml",
@@ -57,8 +57,8 @@ parser.add_argument("-y", "--yaml",
                     default=default_yaml)
 parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
-parser.add_argument("-sc", "--save_checkpoint", default=True,
-                    help="Save checkpoint file")
+parser.add_argument("-sc", "--skip_checkpoint", default=False, action='store_true',
+                    help="Don't save checkpoint file")
 parser.add_argument("-sd", "--seed", default=-1,
                     help="Random seed")
 parser.add_argument("-n", "--nmodel", default=20,
