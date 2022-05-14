@@ -59,6 +59,8 @@ parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
 parser.add_argument("-sc", "--save_checkpoint", default=True,
                     help="Save checkpoint file")
+parser.add_argument("-sd", "--seed", default=-1,
+                    help="Random seed")
 
 args = parser.parse_args()
 save_model_path = str(args.save_model_path)
@@ -71,10 +73,14 @@ save_checkpoint = bool(args.save_checkpoint)
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
 
+seed = config['seed']
+seed_param = int(args.seed)
+if seed_param != -1:
+  seed = seed_param
+
 model_type = config['model']
 drop_rate = config['drop_rate']
 pretrained = config['pretrained']
-seed = config['seed']
 block_size = config['block_size']
 block_decay = config['block_decay']
 
