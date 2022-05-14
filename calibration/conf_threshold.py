@@ -49,6 +49,8 @@ parser.add_argument("-mint", "--min_threshold", default=0.,
                     help="minimum threshold to be applied")
 parser.add_argument("-maxt", "--max_threshold", default=0.,
                     help="maximum threshold to be applied")
+parser.add_argument("-ens", "--ensemble", default=False, action='store_true',
+                    help="use multiple checkpoints for non-SGLD optimizers i.e ensemble")
 
 args = parser.parse_args()
 dir_path = str(args.dir)
@@ -60,6 +62,7 @@ rotate = int(args.rotate)
 nmodel_max = int(args.model_max_idx)
 min_threshold = float(args.min_threshold)
 max_threshold = float(args.max_threshold)
+ensemble = bool(args.ensemble)
 
 optimizers = optimizers.split(",")
 
@@ -99,7 +102,7 @@ for optimizer in optimizers:
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]
 
     # only use last checkpoint for non SGLD:
-    if optimizer in ["SGD","RMSProp","Adam"]:
+    if optimizer in ["SGD","RMSProp","Adam"] and not ensemble:
         path_idxs = [nmodel_max]
         nmodel = 1
 

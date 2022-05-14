@@ -45,6 +45,8 @@ parser.add_argument("-valdir", "--val_dir_param", default=valid_datadir,
                     help="directory containing validation data")
 parser.add_argument("-out", "--output_dir", default=output_dir,
                     help="directory to store output plots")
+parser.add_argument("-ens", "--ensemble", default=False, action='store_true',
+                    help="use multiple checkpoints for non-SGLD optimizers i.e ensemble")
 
 args = parser.parse_args()
 dir_path = str(args.dir)
@@ -54,6 +56,7 @@ nmodel = int(args.nmodel)
 rotate = int(args.rotate)
 nmodel_max = int(args.model_max_idx)
 valid_datadir = str(args.val_dir_param)
+ensemble = bool(args.ensemble)
 
 optimizers = optimizers.split(",")
 
@@ -86,7 +89,7 @@ for optimizer in optimizers:
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]
 
     # only use last checkpoint for non SGLD:
-    if optimizer in ["SGD","RMSProp","Adam"]:
+    if optimizer in ["SGD","RMSProp","Adam"] and not ensemble:
         path_idxs = [nmodel_max]
         nmodel = 1
 
