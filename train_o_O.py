@@ -57,6 +57,8 @@ parser.add_argument("-y", "--yaml",
                     default=default_yaml)
 parser.add_argument("-c", "--checkpoint", default="",
                     help="Checkpoint file")
+parser.add_argument("-sc", "--save_checkpoint", default=True,
+                    help="Save checkpoint file")
 
 args = parser.parse_args()
 save_model_path = str(args.save_model_path)
@@ -64,6 +66,7 @@ save_summaries_dir = str(args.save_summaries_dir)
 is_verbose = bool(args.verbose)
 yaml_path = str(args.yaml)
 checkpoint = str(args.checkpoint)
+save_checkpoint = bool(args.save_checkpoint)
 
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
@@ -365,14 +368,15 @@ for epoch in range(start_epoch, limit_epoch+1):
         break
 
 # save params so that we can resume training
-torch.save({
-    'model_state_dict': model.state_dict(),
-    'optimizer_state_dict': optimizer.state_dict(),
-    'epoch': epoch,
-    'steps': step,
-    'durations': durations,
-    'last_epochs': last_epochs,
-}, f"{save_model_path}/{session_id}_chk.pt")
+if save_checkpoint:
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'epoch': epoch,
+        'steps': step,
+        'durations': durations,
+        'last_epochs': last_epochs,
+    }, f"{save_model_path}/{session_id}_chk.pt")
 
 writer.flush()
 
