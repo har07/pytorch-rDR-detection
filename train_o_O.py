@@ -73,6 +73,8 @@ checkpoint = str(args.checkpoint)
 save_checkpoint = bool(args.save_checkpoint)
 nmodel = int(args.nmodel)
 
+print("save_checkpoint: ", save_checkpoint)
+
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
 
