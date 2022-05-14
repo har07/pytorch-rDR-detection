@@ -70,10 +70,10 @@ save_summaries_dir = str(args.save_summaries_dir)
 is_verbose = bool(args.verbose)
 yaml_path = str(args.yaml)
 checkpoint = str(args.checkpoint)
-save_checkpoint = bool(args.save_checkpoint)
+skip_checkpoint = bool(args.skip_checkpoint)
 nmodel = int(args.nmodel)
 
-print("save_checkpoint: ", save_checkpoint)
+print("skip_checkpoint: ", skip_checkpoint)
 
 with open(yaml_path) as f:
     config = yaml.load(f, Loader=yaml.Loader)
@@ -379,7 +379,7 @@ for epoch in range(start_epoch, limit_epoch+1):
         break
 
 # save params so that we can resume training
-if save_checkpoint:
+if not skip_checkpoint:
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
