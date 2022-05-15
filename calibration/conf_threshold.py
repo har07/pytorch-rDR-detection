@@ -47,7 +47,7 @@ parser.add_argument("-out", "--output_dir", default=output_dir,
                     help="directory to store output plots")
 parser.add_argument("-mint", "--min_threshold", default=0.,
                     help="minimum threshold to be applied")
-parser.add_argument("-maxt", "--max_threshold", default=0.,
+parser.add_argument("-maxt", "--max_threshold", default=1.,
                     help="maximum threshold to be applied")
 parser.add_argument("-ens", "--ensemble", default=False, action='store_true',
                     help="use multiple checkpoints for non-SGLD optimizers i.e ensemble")
