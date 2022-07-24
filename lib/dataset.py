@@ -210,7 +210,7 @@ def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.
     if aug:
       test_transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, padding=4),
+            transforms.RandomCrop(299, padding=4),
             transforms.ToTensor(),
             transforms.Normalize(mean=mean, std=std)
         ])
