@@ -29,7 +29,7 @@ class Logger:
     def save(self, args, silent=True):
         self.df = pd.DataFrame(
             self.res, columns=['dataset', 'model', 'method', 'n_samples', 'metric', 'value', 'info'])
-        dir = '%s-%s-%s-%s.cvs' % (args.dataset, args.model, args.method, args.fname)
+        dir = '%s-%s-%s.cvs' % (args.dataset, args.model, args.method)
         dir = os.path.join(self.base, dir)
         if not silent:
             print('Saved to:', dir, flush=True)
