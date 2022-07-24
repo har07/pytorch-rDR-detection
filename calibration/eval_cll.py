@@ -110,7 +110,6 @@ for optimizer in optimizers:
     val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size)
     targets = get_targets(val_dataset)
 
-    models = []
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]
 
     # only use last checkpoint for non SGLD:
@@ -122,7 +121,9 @@ for optimizer in optimizers:
     log_probs = []
     logger = Logger(base=f'{output_dir}/logs')
     s_args = Arguments(dataset=args.dataset, model='inception_v4', method=optimizer)
-    for path_idx in path_idxs:
+
+    for ns in range(nmodel):
+        path_idx = ns+11  # saved model index starts from 11
         start = time.time()
         path_glob = dir_path + f"/{optimizer}/*_*_{path_idx}.pt"
         # print("pretrained path glob: ", path_glob)
@@ -135,13 +136,13 @@ for optimizer in optimizers:
 
         ones_log_prob = one_sample_pred(val_dataset, model)
         log_probs.append(ones_log_prob)
-        logger.add_metrics_ts(path_idx, log_probs, targets, s_args, time_=start)
+        logger.add_metrics_ts(ns, log_probs, targets, s_args, time_=start)
         logger.save(s_args)
 
     os.makedirs(f'{output_dir}/.megacache', exist_ok=True)
     logits_pth = f'{output_dir}/logits_%s-%s-%s-%s-%s'
-    logits_pth = logits_pth % (s_args.dataset, s_args.model, s_args.method, path_idx+1, 1)
-    log_prob = logsumexp(np.dstack(log_probs), axis=2) - np.log(path_idx+1)
+    logits_pth = logits_pth % (s_args.dataset, s_args.model, s_args.method, ns+1, 1)
+    log_prob = logsumexp(np.dstack(log_probs), axis=2) - np.log(ns+1)
 
     print('Save final logprobs to %s' % logits_pth, end='\n\n')
     np.save(logits_pth, log_prob)
