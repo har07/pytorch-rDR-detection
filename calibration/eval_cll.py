@@ -124,6 +124,8 @@ for optimizer in optimizers:
     log_probs = []
     logger = Logger(base=f'{output_dir}/logs')
     s_args = Arguments(dataset=args.dataset, model='inception_v4', method=optimizer)
+    if tta:
+        s_args.method = args.method + '_augment'
 
     for ns in range(nmodel):
         path_idx = ns+11  # saved model index starts from 11
