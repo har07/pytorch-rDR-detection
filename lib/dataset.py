@@ -208,7 +208,7 @@ def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.
                                      transforms.ToTensor(),
                                      transforms.Normalize(mean, std)]) # normalize to range [-1,1]
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
-    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
+    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False)
     return testloader
 
 def load_predefined_train_test_idx(datadir, train_idxs=[], test_idxs=[], batch_size=128, \
