@@ -201,12 +201,19 @@ def load_predefined_heldout_train_test(heldoutdir, testdir, traindir, batch_size
     heldoutloader = torch.utils.data.DataLoader(heldout_data, batch_size=batch_size, shuffle=True)
     return heldoutloader, testloader, trainloader
 
-def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]):
+def load_predefined_test(testdir, batch_size=50, mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5], aug=False):
     """Return just the test loader."""
 
     test_transforms = transforms.Compose([
                                      transforms.ToTensor(),
                                      transforms.Normalize(mean, std)]) # normalize to range [-1,1]
+    if aug:
+      test_transforms = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, padding=4),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean, std=std)
+        ])
     test_data = datasets.ImageFolder(testdir, transform=test_transforms)
     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False)
     return testloader

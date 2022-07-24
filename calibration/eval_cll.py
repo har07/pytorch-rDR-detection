@@ -50,6 +50,8 @@ parser.add_argument("-out", "--output_dir", default=output_dir,
                     help="directory to store output plots")
 parser.add_argument("-ens", "--ensemble", default=False, action='store_true',
                     help="use multiple checkpoints for non-SGLD optimizers i.e ensemble")
+parser.add_argument("-tta", "--tta", default=False, action='store_true',
+                    help="use test-time augmentation. default is False")
 
 args = parser.parse_args()
 dir_path = str(args.dir)
@@ -60,6 +62,7 @@ rotate = int(args.rotate)
 nmodel_max = int(args.model_max_idx)
 valid_datadir = str(args.val_dir_param)
 ensemble = bool(args.ensemble)
+tta = bool(args.tta)
 
 optimizers = optimizers.split(",")
 
@@ -107,7 +110,7 @@ for optimizer in optimizers:
     model = model.cuda()
 
     # load data based on param `dataset`
-    val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size)
+    val_dataset = load_predefined_test(valid_datadir, batch_size=batch_size, aug=tta)
     targets = get_targets(val_dataset)
 
     path_idxs = [i for i in range(nmodel_max, nmodel_max-nmodel, -1)]
