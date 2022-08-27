@@ -147,6 +147,8 @@ for optimizer in optimizers:
     os.makedirs(f'{output_dir}/.megacache', exist_ok=True)
     logits_pth = f'{output_dir}/logits_%s-%s-%s-%s-%s'
     logits_pth = logits_pth % (s_args.dataset, s_args.model, s_args.method, ns+1, 1)
+    # `logsumexp`: Compute the log of the sum of exponentials of input elements
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.logsumexp.html
     log_prob = logsumexp(np.dstack(log_probs), axis=2) - np.log(ns+1)
 
     print('Save final logprobs to %s' % logits_pth, end='\n\n')

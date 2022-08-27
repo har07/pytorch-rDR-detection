@@ -194,7 +194,7 @@ def get_misclass_aucpr(preds, targets, criterion, topk=1, **args):
 
     return prauc(misclassification_targets, criterion_values)
 
-def get_oe(preds, targets, n_bins=15):
+def get_oe(preds, targets, n_bins=15, **args):
   oe_criterion = metrics.OELoss()
   oe_score = oe_criterion.loss(preds, targets, n_bins=n_bins, logits=False)
   return oe_score
