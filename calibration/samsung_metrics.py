@@ -1,3 +1,4 @@
+from tkinter import N
 from sklearn.metrics import roc_auc_score as auroc, average_precision_score as prauc
 import numpy as np
 import torch
@@ -6,6 +7,7 @@ from sklearn.model_selection import KFold
 from collections import defaultdict
 from scipy.optimize import minimize
 
+import metrics
 
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
@@ -192,12 +194,20 @@ def get_misclass_aucpr(preds, targets, criterion, topk=1, **args):
 
     return prauc(misclassification_targets, criterion_values)
 
+def get_oe(preds, targets, n_bins=15):
+  oe_criterion = metrics.OELoss()
+  oe_score = oe_criterion.loss(preds, targets, n_bins=n_bins, logits=False)
+  return oe_score
+
 def compute_test_metrics(preds, targets, **args):
     metric_name_to_f = {
         'acc': get_acc,
         'll': get_ll,
         'brier': get_brier,
         'acc_aac': acc_aac,
+        'get_tace': get_tace,
+        'get_ece': get_ece,
+        'get_oe': get_oe
     }
     
     res = {}
