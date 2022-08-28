@@ -86,6 +86,7 @@ session_id_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 stats_path = f'{output_dir}/stats_{session_id_prefix}.pt'
 f = open(f'{output_dir}/stats_{session_id_prefix}.txt', 'w')
 print(f'dataset: {dataset}', file=f)
+print(f'tta: {tta}', file=f)
 print(f'path: {dir_path}', file=f)
 print(f'rotated: {rotate}', file=f)
 print(f'statistics: {stats_path}', file=f)
