@@ -78,6 +78,9 @@ if not os.path.exists(output_dir):
 
 thresholds = [.0, .1,.2, .3, .4, .5, .6, .7, .8, .9, 1.]
 thresholds = [x for x in thresholds if x >= min_threshold and x <= max_threshold]
+# always include evaluation without threshold
+if thresholds[0] != .0:
+    thresholds = [.0] + thresholds
 accuracies = {} # key=optimizer, value=array of accuracies in threshold order
 aucs = {} # key=optimizer, value=array of auc_mu in threshold order
 samples = {} # key=optimizer, value=number of samples in threshold order
