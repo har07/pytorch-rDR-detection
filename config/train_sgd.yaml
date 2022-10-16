@@ -1,6 +1,6 @@
 seed: 1
-max_epoch: 9
-max_session_epoch: 9
+max_epoch: 30
+max_session_epoch: 30
 block_size: 40
 block_decay: .5
 optimizer: SGD
