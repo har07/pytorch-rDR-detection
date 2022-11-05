@@ -253,11 +253,11 @@ last_epochs = []
 # Load checkpoint if provided
 if checkpoint != "":
     chk = torch.load(checkpoint)
-    # start_epoch = chk['epoch'] + 1
-    # durations = chk['durations']
-    # step = chk['steps']
-    # last_epochs = chk['last_epochs']
-    # optimizer.load_state_dict(chk['optimizer_state_dict'])
+    start_epoch = chk['epoch'] + 1
+    durations = chk['durations']
+    step = chk['steps']
+    last_epochs = chk['last_epochs']
+    optimizer.load_state_dict(chk['optimizer_state_dict'])
     model.load_state_dict(chk['model_state_dict'])
 
 weights = get_class_weights(class_weight, num_classes, samples_per_class, class_weight_beta)
